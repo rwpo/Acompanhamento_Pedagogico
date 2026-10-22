@@ -1,0 +1,987 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Acompanhamento Pedagógico</title>
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <!-- html2pdf.js -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+  <style>
+    /* Alto Contraste e Acessibilidade Visual */
+    body {
+      background-color: #f1f5f9;
+      color: #0f172a;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    }
+    .btn-contrast {
+      background-color: #0f172a;
+      color: #ffffff;
+      border: 2px solid #0f172a;
+      font-weight: 700;
+    }
+    .btn-contrast:hover {
+      background-color: #1e293b;
+      color: #fbbf24;
+    }
+    .btn-warning-contrast {
+      background-color: #f59e0b;
+      color: #0f172a;
+      border: 2px solid #b45309;
+      font-weight: 700;
+    }
+    .btn-warning-contrast:hover {
+      background-color: #d97706;
+      color: #ffffff;
+    }
+    .nav-btn {
+      transition: all 0.2s ease-in-out;
+      border-bottom: 4px solid transparent;
+    }
+    .nav-btn.active {
+      border-bottom-color: #f59e0b;
+      background-color: #1e293b;
+      color: #ffffff;
+    }
+    @media print {
+      .no-print { display: none !important; }
+      body { background: white; color: black; }
+      .print-area { border: none !important; box-shadow: none !important; }
+    }
+  </style>
+</head>
+<body class="min-h-screen flex flex-col">
+
+  <!-- Header Accesível com Alto Contraste -->
+  <header class="bg-slate-900 text-white shadow-lg no-print">
+    <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
+      <div class="flex items-center space-x-3">
+        <div class="bg-amber-500 text-slate-900 p-3 rounded-lg text-2xl font-black">
+          <i class="fa-solid fa-graduation-cap"></i>
+        </div>
+        <div>
+          <h1 class="text-2xl font-black tracking-wide text-amber-400">ACOMPANHAMENTO PEDAGÓGICO</h1>
+          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Gestão de Alunos, Aulas e Frequência escolar</p>
+        </div>
+      </div>
+      
+      <!-- Status de Conexão com Firebase -->
+      <div class="flex items-center gap-3">
+        <div id="firebase-status" class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 text-xs font-bold">
+          <span class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" id="status-dot"></span>
+          <span id="status-text" class="text-slate-300">Conectando ao Firestore...</span>
+        </div>
+        <button onclick="exportData()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500 rounded-lg text-sm font-bold flex items-center gap-2">
+          <i class="fa-solid fa-download"></i> Backup
+        </button>
+      </div>
+    </div>
+
+    <!-- Navegação por Abas -->
+    <nav class="bg-slate-950 border-t border-slate-800">
+      <div class="max-w-7xl mx-auto px-4 flex flex-wrap gap-1">
+        <button onclick="switchTab('alunos')" id="tab-alunos" class="nav-btn active px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-users text-amber-400 text-base"></i> Cadastro de Alunos
+        </button>
+        <button onclick="switchTab('diario')" id="tab-diario" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-calendar-check text-amber-400 text-base"></i> Registro Diário
+        </button>
+        <button onclick="switchTab('individual')" id="tab-individual" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-user-check text-amber-400 text-base"></i> Relatório Individual
+        </button>
+        <button onclick="switchTab('turma')" id="tab-turma" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-chart-pie text-amber-400 text-base"></i> Relatório da Turma
+        </button>
+        <button onclick="switchTab('secretaria')" id="tab-secretaria" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-file-invoice text-amber-400 text-base"></i> Frequência Secretaria
+        </button>
+      </div>
+    </nav>
+  </header>
+
+  <!-- Conteúdo Principal -->
+  <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
+
+    <!-- 1. CADASTRO DE ALUNOS -->
+    <section id="sec-alunos" class="space-y-6">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+        <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-user-plus text-amber-600"></i> Cadastrar / Editar Aluno
+        </h2>
+        <form id="form-aluno" onsubmit="salvarAluno(event)" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          <input type="hidden" id="aluno-id">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Nome Completo do Aluno(a):</label>
+            <input type="text" id="aluno-nome" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Turma:</label>
+            <select id="aluno-turma" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Matrícula Escolar:</label>
+            <input type="text" id="aluno-matricula" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Usuário ClickIdeia:</label>
+            <input type="text" id="aluno-user-click" class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Senha ClickIdeia:</label>
+            <input type="text" id="aluno-pass-click" class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+          </div>
+          <div class="flex items-end gap-2">
+            <button type="submit" class="btn-contrast w-full py-2.5 px-4 rounded-lg flex items-center justify-center gap-2">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Salvar no Firebase
+            </button>
+            <button type="button" onclick="limparFormAluno()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 px-3 rounded-lg border-2 border-slate-400">
+              Limpar
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Tabela de Alunos -->
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+        <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados no Banco de Dados
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse border-2 border-slate-300">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th class="p-3 border">Matrícula</th>
+                <th class="p-3 border">Nome Completo</th>
+                <th class="p-3 border">Turma</th>
+                <th class="p-3 border">Usuário ClickIdeia</th>
+                <th class="p-3 border">Senha ClickIdeia</th>
+                <th class="p-3 border text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tb-alunos-body">
+              <!-- Renderizado via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 2. REGISTRO DIÁRIO -->
+    <section id="sec-diario" class="space-y-6 hidden">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+        <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-pen-to-square text-amber-600"></i> Novo Registro Diário de Aula
+        </h2>
+        <form id="form-diario" onsubmit="salvarRegistroDiario(event)" class="space-y-4">
+          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-100 p-4 rounded-lg border border-slate-300">
+            <div>
+              <label class="block text-sm font-bold text-slate-900 mb-1">Data da Aula:</label>
+              <input type="date" id="diario-data" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-900 mb-1">Turma:</label>
+              <select id="diario-turma" onchange="carregarAlunosParaDiario()" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
+                <option value="Matutino">Matutino</option>
+                <option value="Vespertino">Vespertino</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
+              <select id="diario-aluno" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
+                <!-- Preenchido via JS -->
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div>
+              <label class="block text-sm font-bold text-slate-900 mb-1">Presença:</label>
+              <select id="diario-presenca" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
+                <option value="Presente">Presente</option>
+                <option value="Ausente">Ausente</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-900 mb-1">Participação:</label>
+              <select id="diario-participacao" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
+                <option value="Ativa">Ativa</option>
+                <option value="Estimulada">Estimulada</option>
+                <option value="Nenhuma">Nenhuma</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-900 mb-1">Realização de Atividades:</label>
+              <select id="diario-atividades" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
+                <option value="Autônomo">Autônomo</option>
+                <option value="Com ajuda">Com ajuda</option>
+                <option value="Não realiza">Não realiza</option>
+              </select>
+            </div>
+            <div>
+              <label class="block text-sm font-bold text-slate-900 mb-1">Nível de Compreensão:</label>
+              <select id="diario-compreensao" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
+                <option value="Boa">Boa</option>
+                <option value="Regular">Regular</option>
+                <option value="Não suficiente">Não suficiente</option>
+              </select>
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Observações Pedagógicas:</label>
+            <input type="text" id="diario-obs" placeholder="Ex: Demonstrou interesse na atividade visual..." class="w-full border-2 border-slate-400 rounded-lg p-2 text-slate-900">
+          </div>
+
+          <button type="submit" class="btn-warning-contrast w-full py-3 rounded-lg text-base flex items-center justify-center gap-2">
+            <i class="fa-solid fa-plus-circle text-lg"></i> Registrar no Diário em Nuvem
+          </button>
+        </form>
+      </div>
+
+      <!-- Tabela Registros Recentes -->
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+        <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> Histórico das Aulas Registradas
+        </h3>
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse border-2 border-slate-300 text-sm">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th class="p-2 border">Data</th>
+                <th class="p-2 border">Turma</th>
+                <th class="p-2 border">Aluno</th>
+                <th class="p-2 border">Presença</th>
+                <th class="p-2 border">Participação</th>
+                <th class="p-2 border">Atividades</th>
+                <th class="p-2 border">Compreensão</th>
+                <th class="p-2 border">Observações</th>
+                <th class="p-2 border text-center">Ações</th>
+              </tr>
+            </thead>
+            <tbody id="tb-diario-body">
+              <!-- Renderizado via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 3. RELATÓRIO INDIVIDUAL -->
+    <section id="sec-individual" class="space-y-6 hidden">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
+          <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-id-card text-amber-600"></i> Consultar Relatório Individual
+          </h2>
+          <button onclick="gerarPDF('print-individual', 'Relatorio_Individual')" class="btn-warning-contrast px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
+            <select id="rel-ind-aluno" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Mês Desejado:</label>
+            <select id="rel-ind-mes" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
+              <option value="TODOS">Ano Inteiro (Todos)</option>
+              <option value="1">Janeiro</option>
+              <option value="2">Fevereiro</option>
+              <option value="3">Março</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Ano Desejado:</label>
+            <input type="number" id="rel-ind-ano" value="2026" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
+          </div>
+        </div>
+      </div>
+
+      <!-- Layout Oficial do Relatório Individual -->
+      <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
+        <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+          <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
+          <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-bold">Nome do Aluno:</p>
+            <p id="ind-out-nome" class="text-xl font-black text-slate-900">-</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-bold">Período de Análise:</p>
+            <p id="ind-out-periodo" class="text-lg font-bold text-amber-600">-</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
+              FREQUÊNCIA E AULAS
+            </div>
+            <table class="w-full text-left font-bold border-collapse">
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Total de aulas registradas:</td>
+                <td id="ind-out-aulas" class="p-3 text-right text-lg">0</td>
+              </tr>
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Total de presenças:</td>
+                <td id="ind-out-presencas" class="p-3 text-right text-lg text-emerald-700">0</td>
+              </tr>
+              <tr>
+                <td class="p-3 bg-slate-900 text-white border-r">Taxa de Frequência:</td>
+                <td id="ind-out-taxa-freq" class="p-3 text-right text-xl font-black text-amber-500 bg-slate-900">0,00%</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
+              PARTICIPAÇÃO NA AULA
+            </div>
+            <table class="w-full text-left font-bold border-collapse">
+              <tr class="border-b">
+                <td class="p-2.5 bg-slate-100 border-r">Ativa:</td>
+                <td id="ind-out-part-ativa" class="p-2.5 text-right">0,00%</td>
+              </tr>
+              <tr class="border-b">
+                <td class="p-2.5 bg-slate-100 border-r">Estimulada:</td>
+                <td id="ind-out-part-estimulada" class="p-2.5 text-right">0,00%</td>
+              </tr>
+              <tr>
+                <td class="p-2.5 bg-slate-100 border-r">Nenhuma:</td>
+                <td id="ind-out-part-nenhuma" class="p-2.5 text-right">0,00%</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
+              REALIZAÇÃO DAS ATIVIDADES
+            </div>
+            <table class="w-full text-left font-bold border-collapse">
+              <tr class="border-b">
+                <td class="p-2.5 bg-slate-100 border-r">Autônomo:</td>
+                <td id="ind-out-ativ-autonomo" class="p-2.5 text-right">0,00%</td>
+              </tr>
+              <tr class="border-b">
+                <td class="p-2.5 bg-slate-100 border-r">Com ajuda:</td>
+                <td id="ind-out-ativ-ajuda" class="p-2.5 text-right">0,00%</td>
+              </tr>
+              <tr>
+                <td class="p-2.5 bg-slate-100 border-r">Não realiza:</td>
+                <td id="ind-out-ativ-nao" class="p-2.5 text-right">0,00%</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
+              COMPREENSÃO DO CONTEÚDO
+            </div>
+            <table class="w-full text-left font-bold border-collapse">
+              <tr class="border-b">
+                <td class="p-2.5 bg-slate-100 border-r">Boa:</td>
+                <td id="ind-out-comp-boa" class="p-2.5 text-right">0,00%</td>
+              </tr>
+              <tr class="border-b">
+                <td class="p-2.5 bg-slate-100 border-r">Regular:</td>
+                <td id="ind-out-comp-regular" class="p-2.5 text-right">0,00%</td>
+              </tr>
+              <tr>
+                <td class="p-2.5 bg-slate-100 border-r">Não suficiente:</td>
+                <td id="ind-out-comp-nsuficiente" class="p-2.5 text-right">0,00%</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. RELATÓRIO DA TURMA -->
+    <section id="sec-turma" class="space-y-6 hidden">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
+          <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-users-rectangle text-amber-600"></i> Relatório Geral da Turma
+          </h2>
+          <button onclick="gerarPDF('print-turma', 'Relatorio_Turma')" class="btn-warning-contrast px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
+          </button>
+        </div>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Escolha a Turma:</label>
+            <select id="rel-turma-select" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Escolha o Mês:</label>
+            <select id="rel-turma-mes" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
+              <option value="TODOS">Ano Inteiro (Todos)</option>
+              <option value="1">Janeiro</option>
+              <option value="2">Fevereiro</option>
+              <option value="3">Março</option>
+              <option value="4">Abril</option>
+              <option value="5">Maio</option>
+              <option value="6">Junho</option>
+              <option value="7">Julho</option>
+              <option value="8">Agosto</option>
+              <option value="9">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Escolha o Ano:</label>
+            <input type="number" id="rel-turma-ano" value="2026" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
+          </div>
+        </div>
+      </div>
+
+      <div id="print-turma" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
+        <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+          <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">ACOMPANHAMENTO COLETIVO DA TURMA</h1>
+          <p class="text-sm font-bold text-slate-600">Relatório Consolidado de Frequência e Rendimento</p>
+        </div>
+
+        <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-bold">Turma Selecionada:</p>
+            <p id="turma-out-nome" class="text-2xl font-black text-slate-900">Matutino</p>
+          </div>
+          <div>
+            <p class="text-xs text-slate-500 uppercase font-bold">Período:</p>
+            <p id="turma-out-periodo" class="text-lg font-bold text-amber-600">-</p>
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center">INDICADORES DA TURMA</div>
+            <table class="w-full font-bold">
+              <tr class="border-b">
+                <td class="p-4 bg-slate-100 border-r">Total de Aulas no Período:</td>
+                <td id="turma-out-aulas" class="p-4 text-right text-xl">0</td>
+              </tr>
+              <tr>
+                <td class="p-4 bg-slate-900 text-white border-r">Frequência da Turma:</td>
+                <td id="turma-out-freq" class="p-4 text-right text-2xl font-black text-amber-400 bg-slate-900">0,00%</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center">NÍVEL DE COMPREENSÃO DA TURMA</div>
+            <table class="w-full font-bold">
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Boa:</td>
+                <td id="turma-out-comp-boa" class="p-3 text-right text-emerald-700">0,00%</td>
+              </tr>
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Regular:</td>
+                <td id="turma-out-comp-regular" class="p-3 text-right text-amber-600">0,00%</td>
+              </tr>
+              <tr>
+                <td class="p-3 bg-slate-100 border-r">Não suficiente:</td>
+                <td id="turma-out-comp-nsuficiente" class="p-3 text-right text-red-600">0,00%</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 5. RELATÓRIO DE FREQUÊNCIA DA SECRETARIA -->
+    <section id="sec-secretaria" class="space-y-6 hidden">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
+          <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-file-contract text-amber-600"></i> Declaração de Frequência do Estudante
+          </h2>
+          <button onclick="gerarPDF('print-secretaria', 'Relatorio_Frequencia_Secretaria')" class="btn-warning-contrast px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+            <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
+          </button>
+        </div>
+        <div>
+          <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
+          <select id="sec-aluno-select" onchange="gerarRelatorioSecretaria()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
+        </div>
+      </div>
+
+      <div id="print-secretaria" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
+        <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+          <h1 class="text-2xl font-black text-slate-900 uppercase">DECLARAÇÃO DE FREQUÊNCIA ESCOLAR</h1>
+          <p class="text-sm font-bold text-slate-600">Documento Oficial de Acompanhamento de Assiduidade</p>
+        </div>
+
+        <div class="bg-slate-100 p-4 rounded-lg border-2 border-slate-300 mb-6 font-bold space-y-1">
+          <p><span class="text-slate-500 uppercase text-xs">Estudante:</span> <span id="sec-out-nome" class="text-lg text-slate-900">-</span></p>
+          <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span></p>
+        </div>
+
+        <h3 class="font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-1">Histórico Completo de Aulas e Assiduidade</h3>
+        <table class="w-full text-left border-collapse border-2 border-slate-400 text-sm mb-8">
+          <thead>
+            <tr class="bg-slate-900 text-white">
+              <th class="p-2 border">Data da Aula</th>
+              <th class="p-2 border">Turma</th>
+              <th class="p-2 border">Status de Presença</th>
+              <th class="p-2 border">Observações Pedagógicas</th>
+            </tr>
+          </thead>
+          <tbody id="sec-out-tb">
+            <!-- Preenchido via JS -->
+          </tbody>
+        </table>
+
+        <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center grid grid-cols-2 gap-8">
+          <div>
+            <p class="border-t border-slate-900 pt-1 font-bold text-sm">Assinatura do Responsável Pedagógico</p>
+          </div>
+          <div>
+            <p class="border-t border-slate-900 pt-1 font-bold text-sm">Secretaria Escolar</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="bg-slate-900 text-slate-400 text-center py-4 text-xs font-semibold no-print border-t border-slate-800">
+    Sistema Acessível de Acompanhamento Pedagógico | Integrado ao Firebase Firestore
+  </footer>
+
+  <!-- Módulos do Firebase (v10 JS SDK) -->
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
+    import { 
+      getFirestore, 
+      collection, 
+      doc, 
+      setDoc, 
+      deleteDoc, 
+      onSnapshot 
+    } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+
+    // Configuração do projeto Firebase do usuário
+    const firebaseConfig = {
+      apiKey: "AIzaSyD7ASdSl4rWggYTQUei80g7lqSrfIffDME",
+      authDomain: "controleescolar-874e1.firebaseapp.com",
+      projectId: "controleescolar-874e1",
+      storageBucket: "controleescolar-874e1.firebasestorage.app",
+      messagingSenderId: "67321551417",
+      appId: "1:67321551417:web:7581cfeae0b4767ec30be8"
+    };
+
+    // Inicialização do Firebase e Firestore
+    const app = initializeApp(firebaseConfig);
+    const dbFirestore = getFirestore(app);
+
+    // Estado da Aplicação
+    window.db = {
+      alunos: [],
+      diario: []
+    };
+
+    // Atualiza indicador de status visual na interface
+    function setConnectionStatus(connected) {
+      const dot = document.getElementById('status-dot');
+      const text = document.getElementById('status-text');
+      if (connected) {
+        dot.className = "w-3 h-3 rounded-full bg-emerald-500";
+        text.className = "text-emerald-400";
+        text.innerText = "Sincronizado via Firebase";
+      } else {
+        dot.className = "w-3 h-3 rounded-full bg-red-500 animate-ping";
+        text.className = "text-red-400";
+        text.innerText = "Erro de Conexão";
+      }
+    }
+
+    // Sincronização em Tempo Real de Alunos
+    onSnapshot(collection(dbFirestore, "alunos"), (snapshot) => {
+      window.db.alunos = [];
+      snapshot.forEach((docSnap) => {
+        window.db.alunos.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setConnectionStatus(true);
+      window.renderAlunos();
+      if (document.getElementById('sec-diario').classList.contains('hidden') === false) window.carregarAlunosParaDiario();
+      if (document.getElementById('sec-individual').classList.contains('hidden') === false) window.carregarSelectAlunos('rel-ind-aluno', window.gerarRelatorioIndividual);
+      if (document.getElementById('sec-secretaria').classList.contains('hidden') === false) window.carregarSelectAlunos('sec-aluno-select', window.gerarRelatorioSecretaria);
+    }, (error) => {
+      console.error("Erro no Firestore (Alunos):", error);
+      setConnectionStatus(false);
+    });
+
+    // Sincronização em Tempo Real do Diário
+    onSnapshot(collection(dbFirestore, "diario"), (snapshot) => {
+      window.db.diario = [];
+      snapshot.forEach((docSnap) => {
+        window.db.diario.push({ id: docSnap.id, ...docSnap.data() });
+      });
+      setConnectionStatus(true);
+      window.renderDiario();
+      if (document.getElementById('sec-individual').classList.contains('hidden') === false) window.gerarRelatorioIndividual();
+      if (document.getElementById('sec-turma').classList.contains('hidden') === false) window.gerarRelatorioTurma();
+      if (document.getElementById('sec-secretaria').classList.contains('hidden') === false) window.gerarRelatorioSecretaria();
+    }, (error) => {
+      console.error("Erro no Firestore (Diário):", error);
+      setConnectionStatus(false);
+    });
+
+    // Operações CRUD Firebase expostas globalmente
+    window.salvarAlunoBD = async function(alunoObj) {
+      await setDoc(doc(dbFirestore, "alunos", alunoObj.id), alunoObj);
+    };
+
+    window.excluirAlunoBD = async function(id) {
+      await deleteDoc(doc(dbFirestore, "alunos", id));
+    };
+
+    window.salvarDiarioBD = async function(diarioObj) {
+      await setDoc(doc(dbFirestore, "diario", diarioObj.id), diarioObj);
+    };
+
+    window.excluirDiarioBD = async function(id) {
+      await deleteDoc(doc(dbFirestore, "diario", id));
+    };
+  </script>
+
+  <script>
+    // Controle de Abas
+    function switchTab(tabKey) {
+      ['alunos', 'diario', 'individual', 'turma', 'secretaria'].forEach(key => {
+        document.getElementById(`sec-${key}`).classList.add('hidden');
+        document.getElementById(`tab-${key}`).classList.remove('active');
+      });
+      document.getElementById(`sec-${tabKey}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabKey}`).classList.add('active');
+
+      if(tabKey === 'diario') carregarAlunosParaDiario();
+      if(tabKey === 'individual') carregarSelectAlunos('rel-ind-aluno', gerarRelatorioIndividual);
+      if(tabKey === 'turma') gerarRelatorioTurma();
+      if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
+    }
+
+    // 1. GERENCIAMENTO DE ALUNOS
+    function renderAlunos() {
+      const tbody = document.getElementById('tb-alunos-body');
+      tbody.innerHTML = '';
+      if(!window.db.alunos || window.db.alunos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-bold text-slate-500">Nenhum aluno cadastrado no banco de dados.</td></tr>';
+        return;
+      }
+      window.db.alunos.forEach(a => {
+        tbody.innerHTML += `
+          <tr class="border-b hover:bg-slate-100 font-semibold text-slate-900">
+            <td class="p-3 border">${a.matricula}</td>
+            <td class="p-3 border font-bold text-slate-950">${a.nome}</td>
+            <td class="p-3 border">${a.turma}</td>
+            <td class="p-3 border">${a.userClick || '-'}</td>
+            <td class="p-3 border">${a.passClick || '-'}</td>
+            <td class="p-3 border text-center space-x-2">
+              <button onclick="editarAluno('${a.id}')" class="text-amber-600 hover:text-amber-800 text-lg"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="excluirAluno('${a.id}')" class="text-red-600 hover:text-red-800 text-lg"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function salvarAluno(e) {
+      e.preventDefault();
+      const id = document.getElementById('aluno-id').value || 'aluno_' + Date.now().toString();
+      const nome = document.getElementById('aluno-nome').value;
+      const turma = document.getElementById('aluno-turma').value;
+      const matricula = document.getElementById('aluno-matricula').value;
+      const userClick = document.getElementById('aluno-user-click').value;
+      const passClick = document.getElementById('aluno-pass-click').value;
+
+      const novoAluno = { id, nome, turma, matricula, userClick, passClick };
+
+      try {
+        await window.salvarAlunoBD(novoAluno);
+        limparFormAluno();
+      } catch(err) {
+        alert('Erro ao salvar no Firebase: ' + err.message);
+      }
+    }
+
+    function editarAluno(id) {
+      const a = window.db.alunos.find(x => x.id === id);
+      if(!a) return;
+      document.getElementById('aluno-id').value = a.id;
+      document.getElementById('aluno-nome').value = a.nome;
+      document.getElementById('aluno-turma').value = a.turma;
+      document.getElementById('aluno-matricula').value = a.matricula;
+      document.getElementById('aluno-user-click').value = a.userClick || '';
+      document.getElementById('aluno-pass-click').value = a.passClick || '';
+    }
+
+    async function excluirAluno(id) {
+      if(confirm('Tem certeza que deseja excluir este aluno do banco de dados?')) {
+        try {
+          await window.excluirAlunoBD(id);
+        } catch(err) {
+          alert('Erro ao excluir do Firebase: ' + err.message);
+        }
+      }
+    }
+
+    function limparFormAluno() {
+      document.getElementById('form-aluno').reset();
+      document.getElementById('aluno-id').value = '';
+    }
+
+    // 2. REGISTRO DIÁRIO
+    function carregarAlunosParaDiario() {
+      const turma = document.getElementById('diario-turma').value;
+      const select = document.getElementById('diario-aluno');
+      select.innerHTML = '';
+      const filtrados = (window.db.alunos || []).filter(a => a.turma === turma);
+      if(filtrados.length === 0) {
+        select.innerHTML = '<option value="">Nenhum aluno nesta turma</option>';
+        return;
+      }
+      filtrados.forEach(a => {
+        select.innerHTML += `<option value="${a.id}">${a.nome} (${a.matricula})</option>`;
+      });
+    }
+
+    async function salvarRegistroDiario(e) {
+      e.preventDefault();
+      const alunoId = document.getElementById('diario-aluno').value;
+      const aluno = window.db.alunos.find(a => a.id === alunoId);
+      if(!aluno) return alert('Selecione um aluno válido!');
+
+      const novoReg = {
+        id: 'diario_' + Date.now().toString(),
+        data: document.getElementById('diario-data').value,
+        turma: document.getElementById('diario-turma').value,
+        alunoId: aluno.id,
+        alunoNome: aluno.nome,
+        presenca: document.getElementById('diario-presenca').value,
+        participacao: document.getElementById('diario-participacao').value,
+        atividades: document.getElementById('diario-atividades').value,
+        compreensao: document.getElementById('diario-compreensao').value,
+        obs: document.getElementById('diario-obs').value
+      };
+
+      try {
+        await window.salvarDiarioBD(novoReg);
+        document.getElementById('diario-obs').value = '';
+      } catch(err) {
+        alert('Erro ao salvar aula no Firebase: ' + err.message);
+      }
+    }
+
+    function renderDiario() {
+      const tbody = document.getElementById('tb-diario-body');
+      tbody.innerHTML = '';
+      if(!window.db.diario || window.db.diario.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado.</td></tr>';
+        return;
+      }
+      window.db.diario.slice().reverse().forEach(d => {
+        tbody.innerHTML += `
+          <tr class="border-b hover:bg-slate-100 font-semibold">
+            <td class="p-2 border">${d.data ? d.data.split('-').reverse().join('/') : '-'}</td>
+            <td class="p-2 border">${d.turma}</td>
+            <td class="p-2 border font-bold text-slate-900">${d.alunoNome}</td>
+            <td class="p-2 border"><span class="px-2 py-0.5 rounded text-xs font-black ${d.presenca === 'Presente' ? 'bg-emerald-200 text-emerald-900' : 'bg-red-200 text-red-900'}">${d.presenca}</span></td>
+            <td class="p-2 border">${d.participacao}</td>
+            <td class="p-2 border">${d.atividades}</td>
+            <td class="p-2 border">${d.compreensao}</td>
+            <td class="p-2 border text-xs text-slate-600">${d.obs || '-'}</td>
+            <td class="p-2 border text-center">
+              <button onclick="excluirRegistroDiario('${d.id}')" class="text-red-600 hover:text-red-800"><i class="fa-solid fa-trash-can"></i></button>
+            </td>
+          </tr>
+        `;
+      });
+    }
+
+    async function excluirRegistroDiario(id) {
+      if(confirm('Excluir este registro de aula do banco de dados?')) {
+        try {
+          await window.excluirDiarioBD(id);
+        } catch(err) {
+          alert('Erro ao excluir do Firebase: ' + err.message);
+        }
+      }
+    }
+
+    // Auxiliar Select de Alunos
+    function carregarSelectAlunos(elementId, callback) {
+      const select = document.getElementById(elementId);
+      select.innerHTML = '';
+      if(!window.db.alunos || window.db.alunos.length === 0) {
+        select.innerHTML = '<option value="">Nenhum aluno cadastrado</option>';
+        return;
+      }
+      window.db.alunos.forEach(a => {
+        select.innerHTML += `<option value="${a.id}">${a.nome} - Matrícula: ${a.matricula} (${a.turma})</option>`;
+      });
+      if(callback) callback();
+    }
+
+    // 3. RELATÓRIO INDIVIDUAL
+    function gerarRelatorioIndividual() {
+      const alunoId = document.getElementById('rel-ind-aluno').value;
+      const mes = document.getElementById('rel-ind-mes').value;
+      const ano = document.getElementById('rel-ind-ano').value;
+
+      const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
+      if(!aluno) return;
+
+      document.getElementById('ind-out-nome').innerText = aluno.nome;
+      document.getElementById('ind-out-periodo').innerText = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
+
+      const regs = (window.db.diario || []).filter(d => {
+        if(d.alunoId !== alunoId) return false;
+        if(!d.data) return false;
+        const [dAno, dMes] = d.data.split('-');
+        if(dAno !== ano) return false;
+        if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
+        return true;
+      });
+
+      const totalAulas = regs.length;
+      const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
+      const taxaFreq = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
+
+      document.getElementById('ind-out-aulas').innerText = totalAulas;
+      document.getElementById('ind-out-presencas').innerText = totalPresencas;
+      document.getElementById('ind-out-taxa-freq').innerText = taxaFreq.toFixed(2).replace('.', ',') + '%';
+
+      const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+
+      document.getElementById('ind-out-part-ativa').innerText = calcPct('participacao', 'Ativa');
+      document.getElementById('ind-out-part-estimulada').innerText = calcPct('participacao', 'Estimulada');
+      document.getElementById('ind-out-part-nenhuma').innerText = calcPct('participacao', 'Nenhuma');
+
+      document.getElementById('ind-out-ativ-autonomo').innerText = calcPct('atividades', 'Autônomo');
+      document.getElementById('ind-out-ativ-ajuda').innerText = calcPct('atividades', 'Com ajuda');
+      document.getElementById('ind-out-ativ-nao').innerText = calcPct('atividades', 'Não realiza');
+
+      document.getElementById('ind-out-comp-boa').innerText = calcPct('compreensao', 'Boa');
+      document.getElementById('ind-out-comp-regular').innerText = calcPct('compreensao', 'Regular');
+      document.getElementById('ind-out-comp-nsuficiente').innerText = calcPct('compreensao', 'Não suficiente');
+    }
+
+    // 4. RELATÓRIO DA TURMA
+    function gerarRelatorioTurma() {
+      const turma = document.getElementById('rel-turma-select').value;
+      const mes = document.getElementById('rel-turma-mes').value;
+      const ano = document.getElementById('rel-turma-ano').value;
+
+      document.getElementById('turma-out-nome').innerText = turma;
+      document.getElementById('turma-out-periodo').innerText = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
+
+      const regs = (window.db.diario || []).filter(d => {
+        if(d.turma !== turma) return false;
+        if(!d.data) return false;
+        const [dAno, dMes] = d.data.split('-');
+        if(dAno !== ano) return false;
+        if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
+        return true;
+      });
+
+      const totalAulas = regs.length;
+      const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
+      const freqTurma = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
+
+      document.getElementById('turma-out-aulas').innerText = totalAulas;
+      document.getElementById('turma-out-freq').innerText = freqTurma.toFixed(2).replace('.', ',') + '%';
+
+      const calcPct = (val) => totalAulas > 0 ? ((regs.filter(r => r.compreensao === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+
+      document.getElementById('turma-out-comp-boa').innerText = calcPct('Boa');
+      document.getElementById('turma-out-comp-regular').innerText = calcPct('Regular');
+      document.getElementById('turma-out-comp-nsuficiente').innerText = calcPct('Não suficiente');
+    }
+
+    // 5. RELATÓRIO FREQUÊNCIA SECRETARIA
+    function gerarRelatorioSecretaria() {
+      const alunoId = document.getElementById('sec-aluno-select').value;
+      const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
+      if(!aluno) return;
+
+      document.getElementById('sec-out-nome').innerText = aluno.nome;
+      document.getElementById('sec-out-matricula').innerText = aluno.matricula;
+      document.getElementById('sec-out-turma').innerText = aluno.turma;
+
+      const regs = (window.db.diario || []).filter(d => d.alunoId === alunoId).sort((a,b) => new Date(a.data) - new Date(b.data));
+      const tbody = document.getElementById('sec-out-tb');
+      tbody.innerHTML = '';
+
+      if(regs.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado para este estudante.</td></tr>';
+        return;
+      }
+
+      regs.forEach(r => {
+        tbody.innerHTML += `
+          <tr class="border-b font-semibold">
+            <td class="p-2 border font-bold">${r.data ? r.data.split('-').reverse().join('/') : '-'}</td>
+            <td class="p-2 border">${r.turma}</td>
+            <td class="p-2 border font-bold ${r.presenca === 'Presente' ? 'text-emerald-700' : 'text-red-600'}">${r.presenca}</td>
+            <td class="p-2 border text-xs">${r.obs || '-'}</td>
+          </tr>
+        `;
+      });
+    }
+
+    // GERAR PDF DOS RELATÓRIOS
+    function gerarPDF(elementId, filename) {
+      const element = document.getElementById(elementId);
+      const opt = {
+        margin: 0.5,
+        filename: `${filename}.pdf`,
+        image: { type: 'jpeg', quality: 0.98 },
+        html2canvas: { scale: 2 },
+        jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
+      };
+      html2pdf().set(opt).from(element).save();
+    }
+
+    // EXPORTAR BACKUP
+    function exportData() {
+      const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.db));
+      const downloadAnchor = document.createElement('a');
+      downloadAnchor.setAttribute("href", dataStr);
+      downloadAnchor.setAttribute("download", `backup_pedagogico_${new Date().toISOString().slice(0,10)}.json`);
+      document.body.appendChild(downloadAnchor);
+      downloadAnchor.click();
+      downloadAnchor.remove();
+    }
+
+    window.onload = function() {
+      const hoje = new Date().toISOString().slice(0,10);
+      document.getElementById('diario-data').value = hoje;
+    };
+  </script>
+</body>
+</html>
