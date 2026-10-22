@@ -11,7 +11,6 @@
   <!-- html2pdf.js -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
   <style>
-    /* Alto Contraste e Acessibilidade Visual */
     body {
       background-color: #f1f5f9;
       color: #0f172a;
@@ -46,6 +45,10 @@
       background-color: #1e293b;
       color: #ffffff;
     }
+    /* Estilos para controle do Modo Leitura */
+    body.read-only-mode .admin-only {
+      display: none !important;
+    }
     @media print {
       .no-print { display: none !important; }
       body { background: white; color: black; }
@@ -53,9 +56,9 @@
     }
   </style>
 </head>
-<body class="min-h-screen flex flex-col">
+<body class="min-h-screen flex flex-col read-only-mode">
 
-  <!-- Header Accesível com Alto Contraste -->
+  <!-- Header Acessível -->
   <header class="bg-slate-900 text-white shadow-lg no-print">
     <div class="max-w-7xl mx-auto px-4 py-4 flex flex-wrap justify-between items-center gap-4">
       <div class="flex items-center space-x-3">
@@ -64,17 +67,23 @@
         </div>
         <div>
           <h1 class="text-2xl font-black tracking-wide text-amber-400">ACOMPANHAMENTO PEDAGÓGICO</h1>
-          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Gestão de Alunos, Aulas e Frequência escolar</p>
+          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Gestão de Alunos, Aulas e Frequência</p>
         </div>
       </div>
       
-      <!-- Status de Conexão com Firebase -->
+      <!-- Painel de Controle de Acesso e Status -->
       <div class="flex items-center gap-3">
         <div id="firebase-status" class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 text-xs font-bold">
           <span class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" id="status-dot"></span>
-          <span id="status-text" class="text-slate-300">Conectando ao Firestore...</span>
+          <span id="status-text" class="text-slate-300">Conectando...</span>
         </div>
-        <button onclick="exportData()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500 rounded-lg text-sm font-bold flex items-center gap-2">
+
+        <!-- Botão Alternar Perfil (Modo Leitura / Modo Admin) -->
+        <button id="btn-toggle-mode" onclick="alternarModoAcesso()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500 rounded-lg text-xs font-bold flex items-center gap-2">
+          <i class="fa-solid fa-lock" id="icon-mode"></i> <span id="label-mode">Modo Leitura (Entrar como Admin)</span>
+        </button>
+
+        <button onclick="exportData()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500 rounded-lg text-xs font-bold flex items-center gap-2 admin-only">
           <i class="fa-solid fa-download"></i> Backup
         </button>
       </div>
@@ -105,9 +114,20 @@
   <!-- Conteúdo Principal -->
   <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
 
+    <!-- Banner Informativo de Modo Leitura -->
+    <div id="read-only-banner" class="bg-amber-100 border-l-4 border-amber-500 text-amber-900 p-4 rounded-lg mb-6 shadow-sm flex items-center justify-between">
+      <div class="flex items-center gap-3">
+        <i class="fa-solid fa-eye text-xl text-amber-600"></i>
+        <div>
+          <p class="font-bold text-sm">Modo Somente Leitura Ativo</p>
+          <p class="text-xs">Você está visualizando o sistema sem permissão de alteração. Clique em "Entrar como Admin" para liberar edições.</p>
+        </div>
+      </div>
+    </div>
+
     <!-- 1. CADASTRO DE ALUNOS -->
     <section id="sec-alunos" class="space-y-6">
-      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 admin-only">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-user-plus text-amber-600"></i> Cadastrar / Editar Aluno
         </h2>
@@ -150,7 +170,7 @@
       <!-- Tabela de Alunos -->
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados no Banco de Dados
+          <i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados
         </h3>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse border-2 border-slate-300">
@@ -161,7 +181,7 @@
                 <th class="p-3 border">Turma</th>
                 <th class="p-3 border">Usuário ClickIdeia</th>
                 <th class="p-3 border">Senha ClickIdeia</th>
-                <th class="p-3 border text-center">Ações</th>
+                <th class="p-3 border text-center admin-only">Ações</th>
               </tr>
             </thead>
             <tbody id="tb-alunos-body">
@@ -174,7 +194,7 @@
 
     <!-- 2. REGISTRO DIÁRIO -->
     <section id="sec-diario" class="space-y-6 hidden">
-      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 admin-only">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-pen-to-square text-amber-600"></i> Novo Registro Diário de Aula
         </h2>
@@ -239,7 +259,7 @@
           </div>
 
           <button type="submit" class="btn-warning-contrast w-full py-3 rounded-lg text-base flex items-center justify-center gap-2">
-            <i class="fa-solid fa-plus-circle text-lg"></i> Registrar no Diário em Nuvem
+            <i class="fa-solid fa-plus-circle text-lg"></i> Registrar Aula no Firebase
           </button>
         </form>
       </div>
@@ -261,7 +281,7 @@
                 <th class="p-2 border">Atividades</th>
                 <th class="p-2 border">Compreensão</th>
                 <th class="p-2 border">Observações</th>
-                <th class="p-2 border text-center">Ações</th>
+                <th class="p-2 border text-center admin-only">Ações</th>
               </tr>
             </thead>
             <tbody id="tb-diario-body">
@@ -313,7 +333,6 @@
         </div>
       </div>
 
-      <!-- Layout Oficial do Relatório Individual -->
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
@@ -584,7 +603,6 @@
       onSnapshot 
     } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
-    // Configuração do projeto Firebase do usuário
     const firebaseConfig = {
       apiKey: "AIzaSyD7ASdSl4rWggYTQUei80g7lqSrfIffDME",
       authDomain: "controleescolar-874e1.firebaseapp.com",
@@ -594,17 +612,14 @@
       appId: "1:67321551417:web:7581cfeae0b4767ec30be8"
     };
 
-    // Inicialização do Firebase e Firestore
     const app = initializeApp(firebaseConfig);
     const dbFirestore = getFirestore(app);
 
-    // Estado da Aplicação
     window.db = {
       alunos: [],
       diario: []
     };
 
-    // Atualiza indicador de status visual na interface
     function setConnectionStatus(connected) {
       const dot = document.getElementById('status-dot');
       const text = document.getElementById('status-text');
@@ -619,7 +634,6 @@
       }
     }
 
-    // Sincronização em Tempo Real de Alunos
     onSnapshot(collection(dbFirestore, "alunos"), (snapshot) => {
       window.db.alunos = [];
       snapshot.forEach((docSnap) => {
@@ -635,7 +649,6 @@
       setConnectionStatus(false);
     });
 
-    // Sincronização em Tempo Real do Diário
     onSnapshot(collection(dbFirestore, "diario"), (snapshot) => {
       window.db.diario = [];
       snapshot.forEach((docSnap) => {
@@ -651,7 +664,6 @@
       setConnectionStatus(false);
     });
 
-    // Operações CRUD Firebase expostas globalmente
     window.salvarAlunoBD = async function(alunoObj) {
       await setDoc(doc(dbFirestore, "alunos", alunoObj.id), alunoObj);
     };
@@ -670,7 +682,34 @@
   </script>
 
   <script>
-    // Controle de Abas
+    let isAdmin = false;
+    const SENHA_ADMIN = "123456"; // Senha padrão para acesso ao Modo Administrador
+
+    function alternarModoAcesso() {
+      if (!isAdmin) {
+        const senha = prompt("Digite a senha de Administrador para liberar edições:");
+        if (senha === SENHA_ADMIN) {
+          isAdmin = true;
+          document.body.classList.remove('read-only-mode');
+          document.getElementById('read-only-banner').classList.add('hidden');
+          document.getElementById('label-mode').innerText = "Modo Admin (Sair)";
+          document.getElementById('icon-mode').className = "fa-solid fa-lock-open";
+          renderAlunos();
+          renderDiario();
+        } else if (senha !== null) {
+          alert("Senha incorreta!");
+        }
+      } else {
+        isAdmin = false;
+        document.body.classList.add('read-only-mode');
+        document.getElementById('read-only-banner').classList.remove('hidden');
+        document.getElementById('label-mode').innerText = "Modo Leitura (Entrar como Admin)";
+        document.getElementById('icon-mode').className = "fa-solid fa-lock";
+        renderAlunos();
+        renderDiario();
+      }
+    }
+
     function switchTab(tabKey) {
       ['alunos', 'diario', 'individual', 'turma', 'secretaria'].forEach(key => {
         document.getElementById(`sec-${key}`).classList.add('hidden');
@@ -685,12 +724,11 @@
       if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
     }
 
-    // 1. GERENCIAMENTO DE ALUNOS
     function renderAlunos() {
       const tbody = document.getElementById('tb-alunos-body');
       tbody.innerHTML = '';
       if(!window.db.alunos || window.db.alunos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-bold text-slate-500">Nenhum aluno cadastrado no banco de dados.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-bold text-slate-500">Nenhum aluno cadastrado.</td></tr>';
         return;
       }
       window.db.alunos.forEach(a => {
@@ -701,7 +739,7 @@
             <td class="p-3 border">${a.turma}</td>
             <td class="p-3 border">${a.userClick || '-'}</td>
             <td class="p-3 border">${a.passClick || '-'}</td>
-            <td class="p-3 border text-center space-x-2">
+            <td class="p-3 border text-center space-x-2 admin-only">
               <button onclick="editarAluno('${a.id}')" class="text-amber-600 hover:text-amber-800 text-lg"><i class="fa-solid fa-pen-to-square"></i></button>
               <button onclick="excluirAluno('${a.id}')" class="text-red-600 hover:text-red-800 text-lg"><i class="fa-solid fa-trash-can"></i></button>
             </td>
@@ -712,6 +750,7 @@
 
     async function salvarAluno(e) {
       e.preventDefault();
+      if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
       const id = document.getElementById('aluno-id').value || 'aluno_' + Date.now().toString();
       const nome = document.getElementById('aluno-nome').value;
       const turma = document.getElementById('aluno-turma').value;
@@ -730,6 +769,7 @@
     }
 
     function editarAluno(id) {
+      if(!isAdmin) return;
       const a = window.db.alunos.find(x => x.id === id);
       if(!a) return;
       document.getElementById('aluno-id').value = a.id;
@@ -741,6 +781,7 @@
     }
 
     async function excluirAluno(id) {
+      if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
       if(confirm('Tem certeza que deseja excluir este aluno do banco de dados?')) {
         try {
           await window.excluirAlunoBD(id);
@@ -755,7 +796,6 @@
       document.getElementById('aluno-id').value = '';
     }
 
-    // 2. REGISTRO DIÁRIO
     function carregarAlunosParaDiario() {
       const turma = document.getElementById('diario-turma').value;
       const select = document.getElementById('diario-aluno');
@@ -772,6 +812,7 @@
 
     async function salvarRegistroDiario(e) {
       e.preventDefault();
+      if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
       const alunoId = document.getElementById('diario-aluno').value;
       const aluno = window.db.alunos.find(a => a.id === alunoId);
       if(!aluno) return alert('Selecione um aluno válido!');
@@ -815,7 +856,7 @@
             <td class="p-2 border">${d.atividades}</td>
             <td class="p-2 border">${d.compreensao}</td>
             <td class="p-2 border text-xs text-slate-600">${d.obs || '-'}</td>
-            <td class="p-2 border text-center">
+            <td class="p-2 border text-center admin-only">
               <button onclick="excluirRegistroDiario('${d.id}')" class="text-red-600 hover:text-red-800"><i class="fa-solid fa-trash-can"></i></button>
             </td>
           </tr>
@@ -824,6 +865,7 @@
     }
 
     async function excluirRegistroDiario(id) {
+      if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
       if(confirm('Excluir este registro de aula do banco de dados?')) {
         try {
           await window.excluirDiarioBD(id);
@@ -833,7 +875,6 @@
       }
     }
 
-    // Auxiliar Select de Alunos
     function carregarSelectAlunos(elementId, callback) {
       const select = document.getElementById(elementId);
       select.innerHTML = '';
@@ -847,7 +888,6 @@
       if(callback) callback();
     }
 
-    // 3. RELATÓRIO INDIVIDUAL
     function gerarRelatorioIndividual() {
       const alunoId = document.getElementById('rel-ind-aluno').value;
       const mes = document.getElementById('rel-ind-mes').value;
@@ -891,7 +931,6 @@
       document.getElementById('ind-out-comp-nsuficiente').innerText = calcPct('compreensao', 'Não suficiente');
     }
 
-    // 4. RELATÓRIO DA TURMA
     function gerarRelatorioTurma() {
       const turma = document.getElementById('rel-turma-select').value;
       const mes = document.getElementById('rel-turma-mes').value;
@@ -923,7 +962,6 @@
       document.getElementById('turma-out-comp-nsuficiente').innerText = calcPct('Não suficiente');
     }
 
-    // 5. RELATÓRIO FREQUÊNCIA SECRETARIA
     function gerarRelatorioSecretaria() {
       const alunoId = document.getElementById('sec-aluno-select').value;
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
@@ -954,7 +992,6 @@
       });
     }
 
-    // GERAR PDF DOS RELATÓRIOS
     function gerarPDF(elementId, filename) {
       const element = document.getElementById(elementId);
       const opt = {
@@ -967,7 +1004,6 @@
       html2pdf().set(opt).from(element).save();
     }
 
-    // EXPORTAR BACKUP
     function exportData() {
       const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(window.db));
       const downloadAnchor = document.createElement('a');
