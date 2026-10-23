@@ -66,11 +66,11 @@
         </div>
         <div>
           <h1 class="text-2xl font-black tracking-wide text-amber-400">ACOMPANHAMENTO PEDAGÓGICO</h1>
-          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Gestão de Alunos, Aulas e Frequência</p>
+          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Gestão de Alunos, Chamada em Bloco e Frequência</p>
         </div>
       </div>
       
-      <!-- Painel de Controle de Acesso e Status -->
+      <!-- Controle de Acesso e Status -->
       <div class="flex items-center gap-3">
         <div id="firebase-status" class="flex items-center gap-2 bg-slate-800 px-3 py-1.5 rounded-full border border-slate-700 text-xs font-bold">
           <span class="w-3 h-3 rounded-full bg-yellow-500 animate-pulse" id="status-dot"></span>
@@ -94,7 +94,10 @@
           <i class="fa-solid fa-users text-amber-400 text-base"></i> Cadastro de Alunos
         </button>
         <button onclick="switchTab('diario')" id="tab-diario" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-check text-amber-400 text-base"></i> Registro Diário
+          <i class="fa-solid fa-list-check text-amber-400 text-base"></i> Registro Diário (Bloco)
+        </button>
+        <button onclick="switchTab('historico')" id="tab-historico" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-clock-rotate-left text-amber-400 text-base"></i> Histórico de Registros
         </button>
         <button onclick="switchTab('individual')" id="tab-individual" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-user-check text-amber-400 text-base"></i> Relatório Individual
@@ -124,7 +127,7 @@
 
     <!-- 1. CADASTRO DE ALUNOS -->
     <section id="sec-alunos" class="space-y-6">
-      <!-- Painel de Upload de Logotipo (Apenas Admin) -->
+      <!-- Upload de Logotipo (Apenas Admin) -->
       <div class="admin-only bg-white rounded-xl shadow-md border-2 border-slate-300 p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
         <div>
           <h3 class="text-sm font-black text-slate-900"><i class="fa-solid fa-image text-amber-600"></i> Logotipo Escolar para Relatórios PDF:</h3>
@@ -165,30 +168,47 @@
             <label class="block text-sm font-bold text-slate-900 mb-1">Senha ClickIdeia:</label>
             <input type="text" id="aluno-pass-click" class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
           </div>
-          <div class="flex items-end gap-2">
-            <button type="submit" class="btn-contrast w-full py-2.5 px-4 rounded-lg flex items-center justify-center gap-2">
-              <i class="fa-solid fa-cloud-arrow-up"></i> Salvar no Firebase
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Situação do Cadastro:</label>
+            <select id="aluno-status" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900 focus:border-amber-500 focus:outline-none">
+              <option value="Ativo">Ativo (Em Frequência)</option>
+              <option value="Inativo">Inativo (Formado / Transferido)</option>
+            </select>
+          </div>
+          <div class="flex items-end gap-2 lg:col-span-3">
+            <button type="submit" class="btn-contrast py-2.5 px-6 rounded-lg flex items-center justify-center gap-2">
+              <i class="fa-solid fa-cloud-arrow-up"></i> Salvar Aluno no Firebase
             </button>
-            <button type="button" onclick="limparFormAluno()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 px-3 rounded-lg border-2 border-slate-400">
-              Limpar
+            <button type="button" onclick="limparFormAluno()" class="bg-slate-200 hover:bg-slate-300 text-slate-800 font-bold py-2.5 px-4 rounded-lg border-2 border-slate-400">
+              Limpar Formulário
             </button>
           </div>
         </form>
       </div>
 
-      <!-- Tabela de Alunos com Filtro por Turma -->
+      <!-- Tabela de Alunos com Filtros -->
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
           <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
             <i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados
           </h3>
-          <div class="flex items-center gap-2">
-            <label class="text-sm font-bold text-slate-700">Filtrar Turma:</label>
-            <select id="filtro-turma-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
-              <option value="TODAS">Todas as Turmas</option>
-              <option value="Matutino">Matutino</option>
-              <option value="Vespertino">Vespertino</option>
-            </select>
+          <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label class="text-xs font-bold text-slate-700 mr-1">Turma:</label>
+              <select id="filtro-turma-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
+                <option value="TODAS">Todas as Turmas</option>
+                <option value="Matutino">Matutino</option>
+                <option value="Vespertino">Vespertino</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-slate-700 mr-1">Situação:</label>
+              <select id="filtro-status-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
+                <option value="Ativo">Somente Ativos</option>
+                <option value="Inativo">Somente Inativos</option>
+                <option value="TODOS">Todos (Ativos + Inativos)</option>
+              </select>
+            </div>
           </div>
         </div>
         <div class="overflow-x-auto">
@@ -198,6 +218,7 @@
                 <th class="p-3 border">Matrícula</th>
                 <th class="p-3 border">Nome Completo</th>
                 <th class="p-3 border">Turma</th>
+                <th class="p-3 border">Situação</th>
                 <th class="p-3 border">Usuário ClickIdeia</th>
                 <th class="p-3 border">Senha ClickIdeia</th>
                 <th class="p-3 border text-center admin-only">Ações</th>
@@ -211,82 +232,71 @@
       </div>
     </section>
 
-    <!-- 2. REGISTRO DIÁRIO -->
+    <!-- 2. REGISTRO DIÁRIO EM BLOCO -->
     <section id="sec-diario" class="space-y-6 hidden">
-      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 admin-only">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-pen-to-square text-amber-600"></i> Novo Registro Diário de Aula
+          <i class="fa-solid fa-list-check text-amber-600"></i> Registro Diário de Aula em Bloco
         </h2>
-        <form id="form-diario" onsubmit="salvarRegistroDiario(event)" class="space-y-4">
-          <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-100 p-4 rounded-lg border border-slate-300">
-            <div>
-              <label class="block text-sm font-bold text-slate-900 mb-1">Data da Aula:</label>
-              <input type="date" id="diario-data" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-900 mb-1">Turma:</label>
-              <select id="diario-turma" onchange="carregarAlunosParaDiario()" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
-                <option value="Matutino">Matutino</option>
-                <option value="Vespertino">Vespertino</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
-              <select id="diario-aluno" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
-                <!-- Preenchido via JS -->
-              </select>
-            </div>
-          </div>
 
-          <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            <div>
-              <label class="block text-sm font-bold text-slate-900 mb-1">Presença:</label>
-              <select id="diario-presenca" onchange="verificarPresencaDiario()" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
-                <option value="Presente">Presente</option>
-                <option value="Ausente">Ausente</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-900 mb-1">Participação:</label>
-              <select id="diario-participacao" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
-                <option value="Ativa">Ativa</option>
-                <option value="Estimulada">Estimulada</option>
-                <option value="Nenhuma">Nenhuma</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-900 mb-1">Realização de Atividades:</label>
-              <select id="diario-atividades" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
-                <option value="Autônomo">Autônomo</option>
-                <option value="Com ajuda">Com ajuda</option>
-                <option value="Não realiza">Não realiza</option>
-              </select>
-            </div>
-            <div>
-              <label class="block text-sm font-bold text-slate-900 mb-1">Nível de Compreensão:</label>
-              <select id="diario-compreensao" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
-                <option value="Boa">Boa</option>
-                <option value="Regular">Regular</option>
-                <option value="Não suficiente">Não suficiente</option>
-              </select>
-            </div>
-          </div>
-
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-100 p-4 rounded-lg border border-slate-300 mb-6">
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Observações Pedagógicas:</label>
-            <input type="text" id="diario-obs" placeholder="Ex: Demonstrou interesse na atividade visual..." class="w-full border-2 border-slate-400 rounded-lg p-2 text-slate-900">
+            <label class="block text-sm font-bold text-slate-900 mb-1">Data da Aula:</label>
+            <input type="date" id="diario-bloco-data" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Turma para Lançamento:</label>
+            <select id="diario-bloco-turma" onchange="carregarChamadaBloco()" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+            </select>
+          </div>
+        </div>
+
+        <!-- Tabela da Chamada em Bloco da Turma -->
+        <form id="form-diario-bloco" onsubmit="salvarChamadaBloco(event)">
+          <div class="overflow-x-auto mb-6">
+            <table class="w-full text-left border-collapse border-2 border-slate-300 text-sm">
+              <thead>
+                <tr class="bg-slate-900 text-white">
+                  <th class="p-3 border">Aluno(a) Ativo</th>
+                  <th class="p-3 border w-36">Presença</th>
+                  <th class="p-3 border w-44">Participação</th>
+                  <th class="p-3 border w-44">Atividades</th>
+                  <th class="p-3 border w-44">Compreensão</th>
+                  <th class="p-3 border">Observação Pedagógica</th>
+                </tr>
+              </thead>
+              <tbody id="tb-chamada-bloco-body">
+                <!-- Preenchido via JS -->
+              </tbody>
+            </table>
           </div>
 
-          <button type="submit" class="btn-warning-contrast w-full py-3 rounded-lg text-base flex items-center justify-center gap-2">
-            <i class="fa-solid fa-plus-circle text-lg"></i> Registrar Aula no Firebase
+          <button type="submit" class="btn-warning-contrast w-full py-3.5 rounded-lg text-base font-black flex items-center justify-center gap-2 admin-only">
+            <i class="fa-solid fa-cloud-arrow-up text-xl"></i> Salvar Registro da Turma Toda no Firebase
           </button>
         </form>
       </div>
+    </section>
 
+    <!-- 3. HISTÓRICO E PESQUISA DE REGISTROS -->
+    <section id="sec-historico" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
-        <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> Histórico das Aulas Registradas
-        </h3>
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
+          <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> Histórico das Aulas Registradas
+          </h2>
+          <div class="flex flex-wrap items-center gap-2">
+            <label class="text-xs font-bold text-slate-700">Filtrar Turma:</label>
+            <select id="filtro-hist-turma" onchange="renderDiario()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-xs bg-slate-50">
+              <option value="TODAS">Todas</option>
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+            </select>
+          </div>
+        </div>
+
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse border-2 border-slate-300 text-sm">
             <thead>
@@ -310,7 +320,7 @@
       </div>
     </section>
 
-    <!-- 3. RELATÓRIO INDIVIDUAL -->
+    <!-- 4. RELATÓRIO INDIVIDUAL -->
     <section id="sec-individual" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
@@ -352,7 +362,6 @@
       </div>
 
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
-        <!-- Logotipo para PDF -->
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
           <div class="mb-3 flex justify-center">
             <img id="img-logo-relatorio" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
@@ -374,9 +383,7 @@
 
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
-              FREQUÊNCIA E AULAS
-            </div>
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">FREQUÊNCIA E AULAS</div>
             <table class="w-full text-left font-bold border-collapse">
               <tr class="border-b">
                 <td class="p-3 bg-slate-100 border-r">Total de aulas registradas:</td>
@@ -394,9 +401,7 @@
           </div>
 
           <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
-              PARTICIPAÇÃO NA AULA
-            </div>
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">PARTICIPAÇÃO NA AULA</div>
             <table class="w-full text-left font-bold border-collapse">
               <tr class="border-b">
                 <td class="p-2.5 bg-slate-100 border-r">Ativa:</td>
@@ -414,9 +419,7 @@
           </div>
 
           <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
-              REALIZAÇÃO DAS ATIVIDADES
-            </div>
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">REALIZAÇÃO DAS ATIVIDADES</div>
             <table class="w-full text-left font-bold border-collapse">
               <tr class="border-b">
                 <td class="p-2.5 bg-slate-100 border-r">Autônomo:</td>
@@ -434,9 +437,7 @@
           </div>
 
           <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">
-              COMPREENSÃO DO CONTEÚDO
-            </div>
+            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">COMPREENSÃO DO CONTEÚDO</div>
             <table class="w-full text-left font-bold border-collapse">
               <tr class="border-b">
                 <td class="p-2.5 bg-slate-100 border-r">Boa:</td>
@@ -456,7 +457,7 @@
       </div>
     </section>
 
-    <!-- 4. RELATÓRIO DA TURMA -->
+    <!-- 5. RELATÓRIO DA TURMA -->
     <section id="sec-turma" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
@@ -556,7 +557,7 @@
       </div>
     </section>
 
-    <!-- 5. RELATÓRIO DE FREQUÊNCIA DA SECRETARIA -->
+    <!-- 6. RELATÓRIO DE FREQUÊNCIA DA SECRETARIA -->
     <section id="sec-secretaria" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
@@ -584,7 +585,7 @@
 
         <div class="bg-slate-100 p-4 rounded-lg border-2 border-slate-300 mb-6 font-bold space-y-1">
           <p><span class="text-slate-500 uppercase text-xs">Estudante:</span> <span id="sec-out-nome" class="text-lg text-slate-900">-</span></p>
-          <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span></p>
+          <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Situação:</span> <span id="sec-out-status" class="text-slate-900">-</span></p>
         </div>
 
         <h3 class="font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-1">Histórico Completo de Aulas e Assiduidade</h3>
@@ -619,7 +620,7 @@
     Sistema Acessível de Acompanhamento Pedagógico | Integrado ao Firebase Firestore
   </footer>
 
-  <!-- Módulos do Firebase (v10 JS SDK) -->
+  <!-- Firebase JavaScript SDK (v10) -->
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
     import { 
@@ -665,13 +666,14 @@
     onSnapshot(collection(dbFirestore, "alunos"), (snapshot) => {
       window.db.alunos = [];
       snapshot.forEach((docSnap) => {
-        window.db.alunos.push({ id: docSnap.id, ...docSnap.data() });
+        const data = docSnap.data();
+        window.db.alunos.push({ id: docSnap.id, status: data.status || 'Ativo', ...data });
       });
       setConnectionStatus(true);
       window.renderAlunos();
-      if (document.getElementById('sec-diario').classList.contains('hidden') === false) window.carregarAlunosParaDiario();
-      if (document.getElementById('sec-individual').classList.contains('hidden') === false) window.carregarSelectAlunos('rel-ind-aluno', window.gerarRelatorioIndividual);
-      if (document.getElementById('sec-secretaria').classList.contains('hidden') === false) window.carregarSelectAlunos('sec-aluno-select', window.gerarRelatorioSecretaria);
+      if (!document.getElementById('sec-diario').classList.contains('hidden')) window.carregarChamadaBloco();
+      if (!document.getElementById('sec-individual').classList.contains('hidden')) window.carregarSelectAlunos('rel-ind-aluno', window.gerarRelatorioIndividual);
+      if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.carregarSelectAlunos('sec-aluno-select', window.gerarRelatorioSecretaria);
     }, (error) => {
       console.error("Erro no Firestore (Alunos):", error);
       setConnectionStatus(false);
@@ -684,9 +686,9 @@
       });
       setConnectionStatus(true);
       window.renderDiario();
-      if (document.getElementById('sec-individual').classList.contains('hidden') === false) window.gerarRelatorioIndividual();
-      if (document.getElementById('sec-turma').classList.contains('hidden') === false) window.gerarRelatorioTurma();
-      if (document.getElementById('sec-secretaria').classList.contains('hidden') === false) window.gerarRelatorioSecretaria();
+      if (!document.getElementById('sec-individual').classList.contains('hidden')) window.gerarRelatorioIndividual();
+      if (!document.getElementById('sec-turma').classList.contains('hidden')) window.gerarRelatorioTurma();
+      if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.gerarRelatorioSecretaria();
     }, (error) => {
       console.error("Erro no Firestore (Diário):", error);
       setConnectionStatus(false);
@@ -724,6 +726,7 @@
           document.getElementById('icon-mode').className = "fa-solid fa-lock-open";
           renderAlunos();
           renderDiario();
+          carregarChamadaBloco();
         } else if (senha !== null) {
           alert("Senha incorreta!");
         }
@@ -735,10 +738,10 @@
         document.getElementById('icon-mode').className = "fa-solid fa-lock";
         renderAlunos();
         renderDiario();
+        carregarChamadaBloco();
       }
     }
 
-    // Gerenciamento de Logotipo em Base64
     function carregarLogo(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -774,74 +777,59 @@
       });
     }
 
-    // Regra de bloqueio caso ausente no registro diário
-    function verificarPresencaDiario() {
-      const presenca = document.getElementById('diario-presenca').value;
-      const part = document.getElementById('diario-participacao');
-      const ativ = document.getElementById('diario-atividades');
-      const comp = document.getElementById('diario-compreensao');
-
-      if (presenca === 'Ausente') {
-        part.value = 'Nenhuma';
-        ativ.value = 'Não realiza';
-        comp.value = 'Não suficiente';
-        part.disabled = true;
-        ativ.disabled = true;
-        comp.disabled = true;
-        part.classList.add('bg-slate-200', 'text-slate-500');
-        ativ.classList.add('bg-slate-200', 'text-slate-500');
-        comp.classList.add('bg-slate-200', 'text-slate-500');
-      } else {
-        part.disabled = false;
-        ativ.disabled = false;
-        comp.disabled = false;
-        part.classList.remove('bg-slate-200', 'text-slate-500');
-        ativ.classList.remove('bg-slate-200', 'text-slate-500');
-        comp.classList.remove('bg-slate-200', 'text-slate-500');
-      }
-    }
-
     function switchTab(tabKey) {
-      ['alunos', 'diario', 'individual', 'turma', 'secretaria'].forEach(key => {
+      ['alunos', 'diario', 'historico', 'individual', 'turma', 'secretaria'].forEach(key => {
         document.getElementById(`sec-${key}`).classList.add('hidden');
         document.getElementById(`tab-${key}`).classList.remove('active');
       });
       document.getElementById(`sec-${tabKey}`).classList.remove('hidden');
       document.getElementById(`tab-${tabKey}`).classList.add('active');
 
-      if(tabKey === 'diario') carregarAlunosParaDiario();
+      if(tabKey === 'diario') carregarChamadaBloco();
+      if(tabKey === 'historico') renderDiario();
       if(tabKey === 'individual') carregarSelectAlunos('rel-ind-aluno', gerarRelatorioIndividual);
       if(tabKey === 'turma') gerarRelatorioTurma();
       if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
     }
 
-    // 1. RENDERIZAR ALUNOS COM FILTRO DE TURMA
+    // 1. LISTAGEM DE ALUNOS COM FILTROS DE TURMA E STATUS
     function renderAlunos() {
       const tbody = document.getElementById('tb-alunos-body');
-      const filtro = document.getElementById('filtro-turma-alunos').value;
+      const filtroTurma = document.getElementById('filtro-turma-alunos').value;
+      const filtroStatus = document.getElementById('filtro-status-alunos').value;
       tbody.innerHTML = '';
 
       let lista = window.db.alunos || [];
-      if (filtro !== 'TODAS') {
-        lista = lista.filter(a => a.turma === filtro);
+
+      if (filtroTurma !== 'TODAS') {
+        lista = lista.filter(a => a.turma === filtroTurma);
+      }
+      if (filtroStatus !== 'TODOS') {
+        lista = lista.filter(a => (a.status || 'Ativo') === filtroStatus);
       }
 
       if(lista.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-bold text-slate-500">Nenhum aluno encontrado para esta turma.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="7" class="p-4 text-center font-bold text-slate-500">Nenhum aluno localizado com os filtros selecionados.</td></tr>';
         return;
       }
 
       lista.forEach(a => {
+        const isAtivo = (a.status || 'Ativo') === 'Ativo';
         tbody.innerHTML += `
-          <tr class="border-b hover:bg-slate-100 font-semibold text-slate-900">
+          <tr class="border-b hover:bg-slate-100 font-semibold text-slate-900 ${!isAtivo ? 'bg-slate-50 text-slate-500' : ''}">
             <td class="p-3 border">${a.matricula}</td>
             <td class="p-3 border font-bold text-slate-950">${a.nome}</td>
             <td class="p-3 border">${a.turma}</td>
+            <td class="p-3 border">
+              <span class="px-2 py-1 rounded text-xs font-black ${isAtivo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">
+                ${a.status || 'Ativo'}
+              </span>
+            </td>
             <td class="p-3 border">${a.userClick || '-'}</td>
             <td class="p-3 border">${a.passClick || '-'}</td>
             <td class="p-3 border text-center space-x-2 admin-only">
-              <button onclick="editarAluno('${a.id}')" class="text-amber-600 hover:text-amber-800 text-lg"><i class="fa-solid fa-pen-to-square"></i></button>
-              <button onclick="excluirAluno('${a.id}')" class="text-red-600 hover:text-red-800 text-lg"><i class="fa-solid fa-trash-can"></i></button>
+              <button onclick="editarAluno('${a.id}')" title="Editar" class="text-amber-600 hover:text-amber-800 text-lg"><i class="fa-solid fa-pen-to-square"></i></button>
+              <button onclick="excluirAluno('${a.id}')" title="Excluir" class="text-red-600 hover:text-red-800 text-lg"><i class="fa-solid fa-trash-can"></i></button>
             </td>
           </tr>
         `;
@@ -857,8 +845,9 @@
       const matricula = document.getElementById('aluno-matricula').value;
       const userClick = document.getElementById('aluno-user-click').value;
       const passClick = document.getElementById('aluno-pass-click').value;
+      const status = document.getElementById('aluno-status').value;
 
-      const novoAluno = { id, nome, turma, matricula, userClick, passClick };
+      const novoAluno = { id, nome, turma, matricula, userClick, passClick, status };
 
       try {
         await window.salvarAlunoBD(novoAluno);
@@ -878,11 +867,12 @@
       document.getElementById('aluno-matricula').value = a.matricula;
       document.getElementById('aluno-user-click').value = a.userClick || '';
       document.getElementById('aluno-pass-click').value = a.passClick || '';
+      document.getElementById('aluno-status').value = a.status || 'Ativo';
     }
 
     async function excluirAluno(id) {
       if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
-      if(confirm('Tem certeza que deseja excluir este aluno?')) {
+      if(confirm('Tem certeza que deseja excluir este aluno definitivamente?')) {
         try {
           await window.excluirAlunoBD(id);
         } catch(err) {
@@ -896,60 +886,146 @@
       document.getElementById('aluno-id').value = '';
     }
 
-    function carregarAlunosParaDiario() {
-      const turma = document.getElementById('diario-turma').value;
-      const select = document.getElementById('diario-aluno');
-      select.innerHTML = '';
-      const filtrados = (window.db.alunos || []).filter(a => a.turma === turma);
-      if(filtrados.length === 0) {
-        select.innerHTML = '<option value="">Nenhum aluno nesta turma</option>';
+    // 2. REGISTRO DIÁRIO EM BLOCO (TODOS OS ALUNOS ATIVOS DA TURMA LADO A LADO)
+    function carregarChamadaBloco() {
+      const turma = document.getElementById('diario-bloco-turma').value;
+      const tbody = document.getElementById('tb-chamada-bloco-body');
+      tbody.innerHTML = '';
+
+      const alunosAtivos = (window.db.alunos || []).filter(a => a.turma === turma && (a.status || 'Ativo') === 'Ativo');
+
+      if (alunosAtivos.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-bold text-slate-500">Nenhum aluno ATIVO encontrado nesta turma.</td></tr>';
         return;
       }
-      filtrados.forEach(a => {
-        select.innerHTML += `<option value="${a.id}">${a.nome} (${a.matricula})</option>`;
+
+      alunosAtivos.forEach((a, idx) => {
+        tbody.innerHTML += `
+          <tr class="border-b font-semibold hover:bg-slate-50">
+            <td class="p-3 border font-bold text-slate-900">
+              ${a.nome} <span class="text-xs text-slate-500 block">Matrícula: ${a.matricula}</span>
+              <input type="hidden" name="bloco-aluno-id" value="${a.id}">
+              <input type="hidden" name="bloco-aluno-nome" value="${a.nome}">
+            </td>
+            <td class="p-2 border">
+              <select name="bloco-presenca" onchange="atualizarLinhaBloco(this)" class="w-full border border-slate-400 rounded p-1 font-bold text-sm">
+                <option value="Presente">Presente</option>
+                <option value="Ausente">Ausente</option>
+              </select>
+            </td>
+            <td class="p-2 border">
+              <select name="bloco-participacao" class="w-full border border-slate-400 rounded p-1 text-sm">
+                <option value="Ativa">Ativa</option>
+                <option value="Estimulada">Estimulada</option>
+                <option value="Nenhuma">Nenhuma</option>
+              </select>
+            </td>
+            <td class="p-2 border">
+              <select name="bloco-atividades" class="w-full border border-slate-400 rounded p-1 text-sm">
+                <option value="Autônomo">Autônomo</option>
+                <option value="Com ajuda">Com ajuda</option>
+                <option value="Não realiza">Não realiza</option>
+              </select>
+            </td>
+            <td class="p-2 border">
+              <select name="bloco-compreensao" class="w-full border border-slate-400 rounded p-1 text-sm">
+                <option value="Boa">Boa</option>
+                <option value="Regular">Regular</option>
+                <option value="Não suficiente">Não suficiente</option>
+              </select>
+            </td>
+            <td class="p-2 border">
+              <input type="text" name="bloco-obs" placeholder="Obs..." class="w-full border border-slate-400 rounded p-1 text-xs">
+            </td>
+          </tr>
+        `;
       });
     }
 
-    async function salvarRegistroDiario(e) {
-      e.preventDefault();
-      if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
-      const alunoId = document.getElementById('diario-aluno').value;
-      const aluno = window.db.alunos.find(a => a.id === alunoId);
-      if(!aluno) return alert('Selecione um aluno válido!');
+    function atualizarLinhaBloco(selectPresenca) {
+      const tr = selectPresenca.closest('tr');
+      const isAusente = selectPresenca.value === 'Ausente';
 
-      const presenca = document.getElementById('diario-presenca').value;
+      const selPart = tr.querySelector('select[name="bloco-participacao"]');
+      const selAtiv = tr.querySelector('select[name="bloco-atividades"]');
+      const selComp = tr.querySelector('select[name="bloco-compreensao"]');
 
-      const novoReg = {
-        id: 'diario_' + Date.now().toString(),
-        data: document.getElementById('diario-data').value,
-        turma: document.getElementById('diario-turma').value,
-        alunoId: aluno.id,
-        alunoNome: aluno.nome,
-        presenca: presenca,
-        participacao: presenca === 'Ausente' ? 'Nenhuma' : document.getElementById('diario-participacao').value,
-        atividades: presenca === 'Ausente' ? 'Não realiza' : document.getElementById('diario-atividades').value,
-        compreensao: presenca === 'Ausente' ? 'Não suficiente' : document.getElementById('diario-compreensao').value,
-        obs: document.getElementById('diario-obs').value
-      };
-
-      try {
-        await window.salvarDiarioBD(novoReg);
-        document.getElementById('diario-obs').value = '';
-        document.getElementById('diario-presenca').value = 'Presente';
-        verificarPresencaDiario();
-      } catch(err) {
-        alert('Erro ao salvar aula: ' + err.message);
+      if (isAusente) {
+        selPart.value = 'Nenhuma';
+        selAtiv.value = 'Não realiza';
+        selComp.value = 'Não suficiente';
+        selPart.disabled = true;
+        selAtiv.disabled = true;
+        selComp.disabled = true;
+        selPart.classList.add('bg-slate-200', 'text-slate-400');
+        selAtiv.classList.add('bg-slate-200', 'text-slate-400');
+        selComp.classList.add('bg-slate-200', 'text-slate-400');
+      } else {
+        selPart.disabled = false;
+        selAtiv.disabled = false;
+        selComp.disabled = false;
+        selPart.classList.remove('bg-slate-200', 'text-slate-400');
+        selAtiv.classList.remove('bg-slate-200', 'text-slate-400');
+        selComp.classList.remove('bg-slate-200', 'text-slate-400');
       }
     }
 
+    async function salvarChamadaBloco(e) {
+      e.preventDefault();
+      if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
+
+      const dataAula = document.getElementById('diario-bloco-data').value;
+      const turma = document.getElementById('diario-bloco-turma').value;
+
+      if (!dataAula) return alert('Selecione uma data para a aula!');
+
+      const rows = document.querySelectorAll('#tb-chamada-bloco-body tr');
+      if (rows.length === 0) return alert('Não há alunos para registrar nesta turma.');
+
+      let salvos = 0;
+      for (const tr of rows) {
+        const alunoId = tr.querySelector('input[name="bloco-aluno-id"]').value;
+        const alunoNome = tr.querySelector('input[name="bloco-aluno-nome"]').value;
+        const presenca = tr.querySelector('select[name="bloco-presenca"]').value;
+        const isAusente = presenca === 'Ausente';
+
+        const registro = {
+          id: 'diario_' + Date.now().toString() + '_' + alunoId,
+          data: dataAula,
+          turma: turma,
+          alunoId: alunoId,
+          alunoNome: alunoNome,
+          presenca: presenca,
+          participacao: isAusente ? 'Nenhuma' : tr.querySelector('select[name="bloco-participacao"]').value,
+          atividades: isAusente ? 'Não realiza' : tr.querySelector('select[name="bloco-atividades"]').value,
+          compreensao: isAusente ? 'Não suficiente' : tr.querySelector('select[name="bloco-compreensao"]').value,
+          obs: tr.querySelector('input[name="bloco-obs"]').value
+        };
+
+        await window.salvarDiarioBD(registro);
+        salvos++;
+      }
+
+      alert(`Chamada gravada com sucesso para os ${salvos} alunos da turma!`);
+    }
+
+    // 3. RENDERIZAR HISTÓRICO DE AULAS COM FILTROS
     function renderDiario() {
       const tbody = document.getElementById('tb-diario-body');
+      const filtroTurma = document.getElementById('filtro-hist-turma').value;
       tbody.innerHTML = '';
-      if(!window.db.diario || window.db.diario.length === 0) {
+
+      let lista = window.db.diario || [];
+      if (filtroTurma !== 'TODAS') {
+        lista = lista.filter(d => d.turma === filtroTurma);
+      }
+
+      if(lista.length === 0) {
         tbody.innerHTML = '<tr><td colspan="9" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado.</td></tr>';
         return;
       }
-      window.db.diario.slice().reverse().forEach(d => {
+
+      lista.slice().reverse().forEach(d => {
         tbody.innerHTML += `
           <tr class="border-b hover:bg-slate-100 font-semibold">
             <td class="p-2 border">${d.data ? d.data.split('-').reverse().join('/') : '-'}</td>
@@ -987,11 +1063,13 @@
         return;
       }
       window.db.alunos.forEach(a => {
-        select.innerHTML += `<option value="${a.id}">${a.nome} - Matrícula: ${a.matricula} (${a.turma})</option>`;
+        const isAtivo = (a.status || 'Ativo') === 'Ativo';
+        select.innerHTML += `<option value="${a.id}">${a.nome} - Matrícula: ${a.matricula} (${a.turma}) [${isAtivo ? 'ATIVO' : 'INATIVO'}]</option>`;
       });
       if(callback) callback();
     }
 
+    // 4. RELATÓRIO INDIVIDUAL (INCLUI HISTÓRICO COMPLETO MESMO SE INATIVO)
     function gerarRelatorioIndividual() {
       const alunoId = document.getElementById('rel-ind-aluno').value;
       const mes = document.getElementById('rel-ind-mes').value;
@@ -1000,7 +1078,8 @@
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
       if(!aluno) return;
 
-      document.getElementById('ind-out-nome').innerText = aluno.nome;
+      const statusTag = (aluno.status || 'Ativo') === 'Inativo' ? ' (INATIVO)' : '';
+      document.getElementById('ind-out-nome').innerText = aluno.nome + statusTag;
       document.getElementById('ind-out-periodo').innerText = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
 
       const regs = (window.db.diario || []).filter(d => {
@@ -1035,6 +1114,7 @@
       document.getElementById('ind-out-comp-nsuficiente').innerText = calcPct('compreensao', 'Não suficiente');
     }
 
+    // 5. RELATÓRIO DA TURMA
     function gerarRelatorioTurma() {
       const turma = document.getElementById('rel-turma-select').value;
       const mes = document.getElementById('rel-turma-mes').value;
@@ -1066,6 +1146,7 @@
       document.getElementById('turma-out-comp-nsuficiente').innerText = calcPct('Não suficiente');
     }
 
+    // 6. DECLARAÇÃO DE FREQUÊNCIA DA SECRETARIA
     function gerarRelatorioSecretaria() {
       const alunoId = document.getElementById('sec-aluno-select').value;
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
@@ -1074,13 +1155,14 @@
       document.getElementById('sec-out-nome').innerText = aluno.nome;
       document.getElementById('sec-out-matricula').innerText = aluno.matricula;
       document.getElementById('sec-out-turma').innerText = aluno.turma;
+      document.getElementById('sec-out-status').innerText = aluno.status || 'Ativo';
 
       const regs = (window.db.diario || []).filter(d => d.alunoId === alunoId).sort((a,b) => new Date(a.data) - new Date(b.data));
       const tbody = document.getElementById('sec-out-tb');
       tbody.innerHTML = '';
 
       if(regs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado para este estudante.</td></tr>';
         return;
       }
 
@@ -1120,7 +1202,7 @@
 
     window.onload = function() {
       const hoje = new Date().toISOString().slice(0,10);
-      document.getElementById('diario-data').value = hoje;
+      document.getElementById('diario-bloco-data').value = hoje;
       const savedLogo = localStorage.getItem('escola_logo_pdf');
       if (savedLogo) aplicarLogoNosRelatorios(savedLogo);
     };
