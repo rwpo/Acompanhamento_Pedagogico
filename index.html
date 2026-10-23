@@ -45,7 +45,6 @@
       background-color: #1e293b;
       color: #ffffff;
     }
-    /* Estilos para controle do Modo Leitura */
     body.read-only-mode .admin-only {
       display: none !important;
     }
@@ -78,7 +77,6 @@
           <span id="status-text" class="text-slate-300">Conectando...</span>
         </div>
 
-        <!-- Botão Alternar Perfil (Modo Leitura / Modo Admin) -->
         <button id="btn-toggle-mode" onclick="alternarModoAcesso()" class="px-3 py-2 bg-slate-800 hover:bg-slate-700 text-amber-400 border border-amber-500 rounded-lg text-xs font-bold flex items-center gap-2">
           <i class="fa-solid fa-lock" id="icon-mode"></i> <span id="label-mode">Modo Leitura (Entrar como Admin)</span>
         </button>
@@ -114,7 +112,6 @@
   <!-- Conteúdo Principal -->
   <main class="max-w-7xl mx-auto px-4 py-6 flex-grow w-full">
 
-    <!-- Banner Informativo de Modo Leitura -->
     <div id="read-only-banner" class="bg-amber-100 border-l-4 border-amber-500 text-amber-900 p-4 rounded-lg mb-6 shadow-sm flex items-center justify-between">
       <div class="flex items-center gap-3">
         <i class="fa-solid fa-eye text-xl text-amber-600"></i>
@@ -127,6 +124,18 @@
 
     <!-- 1. CADASTRO DE ALUNOS -->
     <section id="sec-alunos" class="space-y-6">
+      <!-- Painel de Upload de Logotipo (Apenas Admin) -->
+      <div class="admin-only bg-white rounded-xl shadow-md border-2 border-slate-300 p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-black text-slate-900"><i class="fa-solid fa-image text-amber-600"></i> Logotipo Escolar para Relatórios PDF:</h3>
+          <p class="text-xs text-slate-500">Insira a imagem que aparecerá no cabeçalho de todos os PDFs exportados.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="file" id="logo-input" accept="image/*" onchange="carregarLogo(event)" class="text-xs file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-amber-400 hover:file:bg-slate-800 cursor-pointer">
+          <button onclick="removerLogo()" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 admin-only">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-user-plus text-amber-600"></i> Cadastrar / Editar Aluno
@@ -167,11 +176,21 @@
         </form>
       </div>
 
-      <!-- Tabela de Alunos -->
+      <!-- Tabela de Alunos com Filtro por Turma -->
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
-        <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados
-        </h3>
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
+          <h3 class="text-lg font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados
+          </h3>
+          <div class="flex items-center gap-2">
+            <label class="text-sm font-bold text-slate-700">Filtrar Turma:</label>
+            <select id="filtro-turma-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
+              <option value="TODAS">Todas as Turmas</option>
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+            </select>
+          </div>
+        </div>
         <div class="overflow-x-auto">
           <table class="w-full text-left border-collapse border-2 border-slate-300">
             <thead>
@@ -222,7 +241,7 @@
           <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
             <div>
               <label class="block text-sm font-bold text-slate-900 mb-1">Presença:</label>
-              <select id="diario-presenca" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
+              <select id="diario-presenca" onchange="verificarPresencaDiario()" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold">
                 <option value="Presente">Presente</option>
                 <option value="Ausente">Ausente</option>
               </select>
@@ -264,7 +283,6 @@
         </form>
       </div>
 
-      <!-- Tabela Registros Recentes -->
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h3 class="text-lg font-black text-slate-900 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-clock-rotate-left text-amber-600"></i> Histórico das Aulas Registradas
@@ -334,7 +352,11 @@
       </div>
 
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
+        <!-- Logotipo para PDF -->
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+          <div class="mb-3 flex justify-center">
+            <img id="img-logo-relatorio" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
+          </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
           <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
         </div>
@@ -480,6 +502,9 @@
 
       <div id="print-turma" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+          <div class="mb-3 flex justify-center">
+            <img id="img-logo-turma" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
+          </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">ACOMPANHAMENTO COLETIVO DA TURMA</h1>
           <p class="text-sm font-bold text-slate-600">Relatório Consolidado de Frequência e Rendimento</p>
         </div>
@@ -550,6 +575,9 @@
 
       <div id="print-secretaria" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+          <div class="mb-3 flex justify-center">
+            <img id="img-logo-secretaria" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
+          </div>
           <h1 class="text-2xl font-black text-slate-900 uppercase">DECLARAÇÃO DE FREQUÊNCIA ESCOLAR</h1>
           <p class="text-sm font-bold text-slate-600">Documento Oficial de Acompanhamento de Assiduidade</p>
         </div>
@@ -683,7 +711,7 @@
 
   <script>
     let isAdmin = false;
-    const SENHA_ADMIN = "123456"; // Senha padrão para acesso ao Modo Administrador
+    const SENHA_ADMIN = "123456";
 
     function alternarModoAcesso() {
       if (!isAdmin) {
@@ -710,6 +738,69 @@
       }
     }
 
+    // Gerenciamento de Logotipo em Base64
+    function carregarLogo(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        const base64Img = e.target.result;
+        localStorage.setItem('escola_logo_pdf', base64Img);
+        aplicarLogoNosRelatorios(base64Img);
+        alert('Logotipo carregado com sucesso!');
+      };
+      reader.readAsDataURL(file);
+    }
+
+    function removerLogo() {
+      localStorage.removeItem('escola_logo_pdf');
+      aplicarLogoNosRelatorios(null);
+      document.getElementById('logo-input').value = '';
+      alert('Logotipo removido.');
+    }
+
+    function aplicarLogoNosRelatorios(src) {
+      ['img-logo-relatorio', 'img-logo-turma', 'img-logo-secretaria'].forEach(id => {
+        const img = document.getElementById(id);
+        if (img) {
+          if (src) {
+            img.src = src;
+            img.classList.remove('hidden');
+          } else {
+            img.src = '';
+            img.classList.add('hidden');
+          }
+        }
+      });
+    }
+
+    // Regra de bloqueio caso ausente no registro diário
+    function verificarPresencaDiario() {
+      const presenca = document.getElementById('diario-presenca').value;
+      const part = document.getElementById('diario-participacao');
+      const ativ = document.getElementById('diario-atividades');
+      const comp = document.getElementById('diario-compreensao');
+
+      if (presenca === 'Ausente') {
+        part.value = 'Nenhuma';
+        ativ.value = 'Não realiza';
+        comp.value = 'Não suficiente';
+        part.disabled = true;
+        ativ.disabled = true;
+        comp.disabled = true;
+        part.classList.add('bg-slate-200', 'text-slate-500');
+        ativ.classList.add('bg-slate-200', 'text-slate-500');
+        comp.classList.add('bg-slate-200', 'text-slate-500');
+      } else {
+        part.disabled = false;
+        ativ.disabled = false;
+        comp.disabled = false;
+        part.classList.remove('bg-slate-200', 'text-slate-500');
+        ativ.classList.remove('bg-slate-200', 'text-slate-500');
+        comp.classList.remove('bg-slate-200', 'text-slate-500');
+      }
+    }
+
     function switchTab(tabKey) {
       ['alunos', 'diario', 'individual', 'turma', 'secretaria'].forEach(key => {
         document.getElementById(`sec-${key}`).classList.add('hidden');
@@ -724,14 +815,23 @@
       if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
     }
 
+    // 1. RENDERIZAR ALUNOS COM FILTRO DE TURMA
     function renderAlunos() {
       const tbody = document.getElementById('tb-alunos-body');
+      const filtro = document.getElementById('filtro-turma-alunos').value;
       tbody.innerHTML = '';
-      if(!window.db.alunos || window.db.alunos.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-bold text-slate-500">Nenhum aluno cadastrado.</td></tr>';
+
+      let lista = window.db.alunos || [];
+      if (filtro !== 'TODAS') {
+        lista = lista.filter(a => a.turma === filtro);
+      }
+
+      if(lista.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" class="p-4 text-center font-bold text-slate-500">Nenhum aluno encontrado para esta turma.</td></tr>';
         return;
       }
-      window.db.alunos.forEach(a => {
+
+      lista.forEach(a => {
         tbody.innerHTML += `
           <tr class="border-b hover:bg-slate-100 font-semibold text-slate-900">
             <td class="p-3 border">${a.matricula}</td>
@@ -782,11 +882,11 @@
 
     async function excluirAluno(id) {
       if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
-      if(confirm('Tem certeza que deseja excluir este aluno do banco de dados?')) {
+      if(confirm('Tem certeza que deseja excluir este aluno?')) {
         try {
           await window.excluirAlunoBD(id);
         } catch(err) {
-          alert('Erro ao excluir do Firebase: ' + err.message);
+          alert('Erro ao excluir: ' + err.message);
         }
       }
     }
@@ -817,24 +917,28 @@
       const aluno = window.db.alunos.find(a => a.id === alunoId);
       if(!aluno) return alert('Selecione um aluno válido!');
 
+      const presenca = document.getElementById('diario-presenca').value;
+
       const novoReg = {
         id: 'diario_' + Date.now().toString(),
         data: document.getElementById('diario-data').value,
         turma: document.getElementById('diario-turma').value,
         alunoId: aluno.id,
         alunoNome: aluno.nome,
-        presenca: document.getElementById('diario-presenca').value,
-        participacao: document.getElementById('diario-participacao').value,
-        atividades: document.getElementById('diario-atividades').value,
-        compreensao: document.getElementById('diario-compreensao').value,
+        presenca: presenca,
+        participacao: presenca === 'Ausente' ? 'Nenhuma' : document.getElementById('diario-participacao').value,
+        atividades: presenca === 'Ausente' ? 'Não realiza' : document.getElementById('diario-atividades').value,
+        compreensao: presenca === 'Ausente' ? 'Não suficiente' : document.getElementById('diario-compreensao').value,
         obs: document.getElementById('diario-obs').value
       };
 
       try {
         await window.salvarDiarioBD(novoReg);
         document.getElementById('diario-obs').value = '';
+        document.getElementById('diario-presenca').value = 'Presente';
+        verificarPresencaDiario();
       } catch(err) {
-        alert('Erro ao salvar aula no Firebase: ' + err.message);
+        alert('Erro ao salvar aula: ' + err.message);
       }
     }
 
@@ -866,11 +970,11 @@
 
     async function excluirRegistroDiario(id) {
       if(!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
-      if(confirm('Excluir este registro de aula do banco de dados?')) {
+      if(confirm('Excluir este registro de aula?')) {
         try {
           await window.excluirDiarioBD(id);
         } catch(err) {
-          alert('Erro ao excluir do Firebase: ' + err.message);
+          alert('Erro ao excluir: ' + err.message);
         }
       }
     }
@@ -976,7 +1080,7 @@
       tbody.innerHTML = '';
 
       if(regs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado para este estudante.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado.</td></tr>';
         return;
       }
 
@@ -1017,6 +1121,8 @@
     window.onload = function() {
       const hoje = new Date().toISOString().slice(0,10);
       document.getElementById('diario-data').value = hoje;
+      const savedLogo = localStorage.getItem('escola_logo_pdf');
+      if (savedLogo) aplicarLogoNosRelatorios(savedLogo);
     };
   </script>
 </body>
