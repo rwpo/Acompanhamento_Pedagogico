@@ -48,10 +48,6 @@
     body.read-only-mode .admin-only {
       display: none !important;
     }
-    input[type="date"]::-webkit-calendar-picker-indicator {
-      cursor: pointer;
-      filter: invert(0.8);
-    }
     @media print {
       .no-print { display: none !important; }
       body { background: white; color: black; }
@@ -101,7 +97,7 @@
           <i class="fa-solid fa-list-check text-amber-400 text-base"></i> Registro Diário (Bloco)
         </button>
         <button onclick="switchTab('historico')" id="tab-historico" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-clock-rotate-left text-amber-400 text-base"></i> Histórico por Data
+          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Histórico por Mês/Data
         </button>
         <button onclick="switchTab('individual')" id="tab-individual" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-user-check text-amber-400 text-base"></i> Relatório Individual
@@ -282,33 +278,43 @@
       </div>
     </section>
 
-    <!-- 3. HISTÓRICO DE AULAS POR CALENDÁRIO COM DESTAQUE DE ALTO CONTRASTE -->
+    <!-- 3. HISTÓRICO DE AULAS POR MÊS E LISTA SUSPENSA -->
     <section id="sec-historico" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-days text-amber-600"></i> Histórico de Registros por Data
+          <i class="fa-solid fa-calendar-days text-amber-600"></i> Histórico de Registros por Mês e Data
         </h2>
 
-        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 space-y-4">
+        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label class="block text-sm font-black text-slate-900 mb-1">Selecione a Data da Aula:</label>
-            <p class="text-xs text-slate-600 font-semibold mb-2">Escolha uma data para consultar o registro da chamada:</p>
-            <input type="date" id="calendario-historico" onchange="filtrarHistoricoPorData()" class="border-2 border-amber-500 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900 shadow-inner">
+            <label class="block text-sm font-black text-slate-900 mb-1">1. Escolha o Mês:</label>
+            <select id="filtro-mes-historico" onchange="atualizarDiasDoMes()" class="w-full border-2 border-slate-400 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900">
+              <option value="">Selecione o Mês...</option>
+              <option value="01">Janeiro</option>
+              <option value="02">Fevereiro</option>
+              <option value="03">Março</option>
+              <option value="04">Abril</option>
+              <option value="05">Maio</option>
+              <option value="06">Junho</option>
+              <option value="07">Julho</option>
+              <option value="08">Agosto</option>
+              <option value="09">Setembro</option>
+              <option value="10">Outubro</option>
+              <option value="11">Novembro</option>
+              <option value="12">Dezembro</option>
+            </select>
           </div>
 
-          <!-- PAINEL VISUAL DE DIAS COM AULA (ALTO CONTRASTE) -->
           <div>
-            <p class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2">
-              <i class="fa-solid fa-circle-check text-emerald-700"></i> Dias com aulas cadastradas (Clique para acesso rápido):
-            </p>
-            <div id="lista-dias-com-aula" class="flex flex-wrap gap-2">
-              <!-- Gerado dinamicamente via JS -->
-            </div>
+            <label class="block text-sm font-black text-slate-900 mb-1">2. Escolha o Dia com Aula Registrada:</label>
+            <select id="filtro-dia-historico" onchange="filtrarHistoricoPorData()" class="w-full border-2 border-amber-500 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900 shadow-inner">
+              <option value="">Primeiro selecione o mês acima...</option>
+            </select>
           </div>
+        </div>
 
-          <div id="status-filtro-data" class="text-sm font-bold text-slate-700 bg-white px-4 py-2 rounded-lg border border-slate-300 shadow-sm">
-            Nenhuma data selecionada. Escolha um dia acima ou clique em um dos dias destacados.
-          </div>
+        <div id="status-filtro-data" class="text-sm font-bold text-slate-700 bg-slate-50 px-4 py-3 rounded-lg border border-slate-300 mb-4 shadow-sm">
+          Aguardando seleção de mês e data.
         </div>
 
         <div class="overflow-x-auto">
@@ -327,7 +333,7 @@
             </thead>
             <tbody id="tb-diario-body">
               <tr>
-                <td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione uma data acima para visualizar o histórico de registros.</td>
+                <td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione o mês e o dia para visualizar os registros.</td>
               </tr>
             </tbody>
           </table>
@@ -719,7 +725,7 @@
         window.db.diario.push({ id: docSnap.id, ...docSnap.data() });
       });
       setConnectionStatus(true);
-      if (typeof window.atualizarDestaquesCalendario === 'function') window.atualizarDestaquesCalendario();
+      if (typeof window.atualizarDiasDoMes === 'function') window.atualizarDiasDoMes();
       if (!document.getElementById('sec-individual').classList.contains('hidden')) window.gerarRelatorioIndividual();
       if (!document.getElementById('sec-turma').classList.contains('hidden')) window.gerarRelatorioTurma();
       if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.gerarRelatorioSecretaria();
@@ -760,7 +766,7 @@
           document.getElementById('icon-mode').className = "fa-solid fa-lock-open";
           renderAlunos();
           carregarChamadaBloco();
-          filtrarHistoricoPorData();
+          atualizarDiasDoMes();
         } else if (senha !== null) {
           alert("Senha incorreta!");
         }
@@ -772,7 +778,7 @@
         document.getElementById('icon-mode').className = "fa-solid fa-lock";
         renderAlunos();
         carregarChamadaBloco();
-        filtrarHistoricoPorData();
+        atualizarDiasDoMes();
       }
     }
 
@@ -821,51 +827,62 @@
 
       if(tabKey === 'diario') carregarChamadaBloco();
       if(tabKey === 'historico') {
-        atualizarDestaquesCalendario();
+        atualizarDiasDoMes();
       }
       if(tabKey === 'individual') carregarSelectAlunos('rel-ind-aluno', gerarRelatorioIndividual);
       if(tabKey === 'turma') gerarRelatorioTurma();
       if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
     }
 
-    // --- PAINEL DE DIAS COM AULA (ALTO CONTRASTE) ---
-    function atualizarDestaquesCalendario() {
-      const containerDias = document.getElementById('lista-dias-com-aula');
-      if (!containerDias) return;
-      containerDias.innerHTML = '';
+    // --- SELEÇÃO DE HISTÓRICO POR MÊS E LISTA SUSPENSA DE DIAS ---
+    function atualizarDiasDoMes() {
+      const mesSelecionado = document.getElementById('filtro-mes-historico').value;
+      const selectDias = document.getElementById('filtro-dia-historico');
+      const tbody = document.querySelector('#sec-historico #tb-diario-body');
+      const statusInfo = document.getElementById('status-filtro-data');
 
-      const datasComAula = Array.from(new Set((window.db.diario || []).map(d => d.data))).sort().reverse();
-
-      if (datasComAula.length === 0) {
-        containerDias.innerHTML = '<span class="text-xs text-slate-500 font-semibold italic">Nenhuma aula cadastrada no sistema ainda.</span>';
+      selectDias.innerHTML = '<option value="">Selecione o dia da aula...</option>';
+      tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione o mês e o dia para visualizar os registros.</td></tr>';
+      
+      if (!mesSelecionado) {
+        statusInfo.innerText = "Por favor, selecione um mês primeiro.";
         return;
       }
 
-      datasComAula.forEach(dataStr => {
+      // Filtra todas as datas do diário que pertencem ao mês selecionado
+      const datasDoMes = Array.from(new Set(
+        (window.db.diario || [])
+          .map(d => d.data)
+          .filter(data => data && data.split('-')[1] === mesSelecionado)
+      )).sort().reverse();
+
+      if (datasDoMes.length === 0) {
+        selectDias.innerHTML = '<option value="">Nenhuma aula registrada neste mês</option>';
+        statusInfo.innerText = "Nenhum registro de aula encontrado para o mês selecionado.";
+        return;
+      }
+
+      statusInfo.innerText = `Encontrados ${datasDoMes.length} dias com aulas registradas neste mês. Selecione um dia acima.`;
+
+      datasDoMes.forEach(dataStr => {
         const [ano, mes, dia] = dataStr.split('-');
         const dataFormatada = `${dia}/${mes}/${ano}`;
-
-        const btn = document.createElement('button');
-        btn.type = 'button';
-        btn.className = "px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-lg border-2 border-amber-600 shadow flex items-center gap-1.5 transition-transform hover:scale-105 cursor-pointer";
-        btn.innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${dataFormatada}`;
-        btn.onclick = function() {
-          document.getElementById('calendario-historico').value = dataStr;
-          filtrarHistoricoPorData();
-        };
-        containerDias.appendChild(btn);
+        const option = document.createElement('option');
+        option.value = dataStr;
+        option.textContent = `Aula do dia ${dataFormatada}`;
+        selectDias.appendChild(option);
       });
     }
 
     function filtrarHistoricoPorData() {
-      const dataSelecionada = document.getElementById('calendario-historico').value;
+      const dataSelecionada = document.getElementById('filtro-dia-historico').value;
       const tbody = document.querySelector('#sec-historico #tb-diario-body');
       const statusInfo = document.getElementById('status-filtro-data');
       tbody.innerHTML = '';
 
       if (!dataSelecionada) {
-        statusInfo.innerText = "Nenhuma data selecionada. Escolha um dia acima.";
-        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione uma data no calendário para visualizar o histórico.</td></tr>';
+        statusInfo.innerText = "Selecione um dia na lista suspensa.";
+        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione uma data para visualizar o histórico.</td></tr>';
         return;
       }
 
@@ -875,7 +892,7 @@
       const registrosDoDia = (window.db.diario || []).filter(d => d.data === dataSelecionada);
 
       if (registrosDoDia.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center font-bold text-amber-900 bg-amber-50 rounded">Nenhum registro de aula encontrado para a data ${dataFormatada}.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center font-bold text-amber-900 bg-amber-50 rounded">Nenhum registro encontrado para esta data.</td></tr>`;
         return;
       }
 
@@ -1095,7 +1112,7 @@
         salvos++;
       }
       alert(`Chamada gravada com sucesso para os ${salvos} alunos da turma!`);
-      atualizarDestaquesCalendario();
+      atualizarDiasDoMes();
     }
 
     async function excluirRegistroDiario(id) {
@@ -1104,7 +1121,7 @@
         try {
           await window.excluirDiarioBD(id);
           filtrarHistoricoPorData();
-          atualizarDestaquesCalendario();
+          atualizarDiasDoMes();
         } catch(err) {
           alert('Erro ao excluir: ' + err.message);
         }
