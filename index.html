@@ -96,8 +96,11 @@
         <button onclick="switchTab('diario')" id="tab-diario" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-list-check text-amber-400 text-base"></i> Registro Diário (Bloco)
         </button>
+        <button onclick="switchTab('historico-geral')" id="tab-historico-geral" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-book-open text-amber-400 text-base"></i> Histórico de Aulas
+        </button>
         <button onclick="switchTab('historico')" id="tab-historico" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Histórico por Mês/Data
+          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Data
         </button>
         <button onclick="switchTab('individual')" id="tab-individual" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-user-check text-amber-400 text-base"></i> Relatório Individual
@@ -231,14 +234,14 @@
       </div>
     </section>
 
-    <!-- 2. REGISTRO DIÁRIO EM BLOCO -->
+    <!-- 2. REGISTRO DIÁRIO EM BLOCO (COM CAMPO DE TEMA DA AULA) -->
     <section id="sec-diario" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-list-check text-amber-600"></i> Registro Diário de Aula em Bloco
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 bg-slate-100 p-4 rounded-lg border border-slate-300 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-100 p-4 rounded-lg border border-slate-300 mb-6">
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Data da Aula:</label>
             <input type="date" id="diario-bloco-data" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
@@ -249,6 +252,10 @@
               <option value="Matutino">Matutino</option>
               <option value="Vespertino">Vespertino</option>
             </select>
+          </div>
+          <div class="md:col-span-1">
+            <label class="block text-sm font-bold text-slate-900 mb-1">Tema / Conteúdo da Aula:</label>
+            <input type="text" id="diario-bloco-tema" placeholder="Ex: Introdução à Magnetismo" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
           </div>
         </div>
 
@@ -278,11 +285,47 @@
       </div>
     </section>
 
-    <!-- 3. HISTÓRICO DE AULAS POR MÊS E LISTA SUSPENSA -->
+    <!-- 3. NOVA ABA: HISTÓRICO GERAL DE AULAS (TEMA, PRESENTES, AUSENTES + FILTRO DE TURMA) -->
+    <section id="sec-historico-geral" class="space-y-6 hidden">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+        <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
+          <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
+            <i class="fa-solid fa-book-open text-amber-600"></i> Histórico Geral de Aulas Ministradas
+          </h2>
+          <div>
+            <label class="text-xs font-bold text-slate-700 mr-2">Filtrar por Turma:</label>
+            <select id="filtro-hist-geral-turma" onchange="renderHistoricoGeral()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
+              <option value="TODAS">Todas as Turmas</option>
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="overflow-x-auto">
+          <table class="w-full text-left border-collapse border-2 border-slate-300 text-sm">
+            <thead>
+              <tr class="bg-slate-900 text-white">
+                <th class="p-3 border">Data</th>
+                <th class="p-3 border">Turma</th>
+                <th class="p-3 border">Tema / Conteúdo Trabalhado</th>
+                <th class="p-3 border text-center">Alunos Presentes</th>
+                <th class="p-3 border text-center">Alunos Ausentes</th>
+              </tr>
+            </thead>
+            <tbody id="tb-historico-geral-body">
+              <!-- Renderizado via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- 4. CONSULTA DE CHAMADA POR DATA -->
     <section id="sec-historico" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-days text-amber-600"></i> Histórico de Registros por Mês e Data
+          <i class="fa-solid fa-calendar-days text-amber-600"></i> Consulta de Chamada por Data
         </h2>
 
         <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -341,7 +384,7 @@
       </div>
     </section>
 
-    <!-- 4. RELATÓRIO INDIVIDUAL -->
+    <!-- 5. RELATÓRIO INDIVIDUAL -->
     <section id="sec-individual" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
@@ -478,7 +521,7 @@
       </div>
     </section>
 
-    <!-- 5. RELATÓRIO DA TURMA -->
+    <!-- 6. RELATÓRIO DA TURMA -->
     <section id="sec-turma" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
@@ -578,7 +621,7 @@
       </div>
     </section>
 
-    <!-- 6. RELATÓRIO DE FREQUÊNCIA DA SECRETARIA -->
+    <!-- 7. RELATÓRIO DE FREQUÊNCIA DA SECRETARIA -->
     <section id="sec-secretaria" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 no-print">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
@@ -726,6 +769,7 @@
       });
       setConnectionStatus(true);
       if (typeof window.atualizarDiasDoMes === 'function') window.atualizarDiasDoMes();
+      if (typeof window.renderHistoricoGeral === 'function') window.renderHistoricoGeral();
       if (!document.getElementById('sec-individual').classList.contains('hidden')) window.gerarRelatorioIndividual();
       if (!document.getElementById('sec-turma').classList.contains('hidden')) window.gerarRelatorioTurma();
       if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.gerarRelatorioSecretaria();
@@ -766,6 +810,7 @@
           document.getElementById('icon-mode').className = "fa-solid fa-lock-open";
           renderAlunos();
           carregarChamadaBloco();
+          renderHistoricoGeral();
           atualizarDiasDoMes();
         } else if (senha !== null) {
           alert("Senha incorreta!");
@@ -778,6 +823,7 @@
         document.getElementById('icon-mode').className = "fa-solid fa-lock";
         renderAlunos();
         carregarChamadaBloco();
+        renderHistoricoGeral();
         atualizarDiasDoMes();
       }
     }
@@ -818,7 +864,7 @@
     }
 
     function switchTab(tabKey) {
-      ['alunos', 'diario', 'historico', 'individual', 'turma', 'secretaria'].forEach(key => {
+      ['alunos', 'diario', 'historico-geral', 'historico', 'individual', 'turma', 'secretaria'].forEach(key => {
         document.getElementById(`sec-${key}`).classList.add('hidden');
         document.getElementById(`tab-${key}`).classList.remove('active');
       });
@@ -826,12 +872,60 @@
       document.getElementById(`tab-${tabKey}`).classList.add('active');
 
       if(tabKey === 'diario') carregarChamadaBloco();
-      if(tabKey === 'historico') {
-        atualizarDiasDoMes();
-      }
+      if(tabKey === 'historico-geral') renderHistoricoGeral();
+      if(tabKey === 'historico') atualizarDiasDoMes();
       if(tabKey === 'individual') carregarSelectAlunos('rel-ind-aluno', gerarRelatorioIndividual);
       if(tabKey === 'turma') gerarRelatorioTurma();
       if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
+    }
+
+    // --- RENDERIZAR HISTÓRICO GERAL DE AULAS (COM FILTRO DE TURMA, TEMA, PRESENTES E AUSENTES) ---
+    function renderHistoricoGeral() {
+      const tbody = document.getElementById('tb-historico-geral-body');
+      const filtroTurma = document.getElementById('filtro-hist-geral-turma').value;
+      tbody.innerHTML = '';
+
+      const diario = window.db.diario || [];
+      
+      // Agrupar registros por data e turma para consolidar as aulas ministradas
+      const aulasMap = {};
+      diario.forEach(d => {
+        if (!d.data || !d.turma) return;
+        if (filtroTurma !== 'TODAS' && d.turma !== filtroTurma) return;
+
+        const chave = `${d.data}_${d.turma}`;
+        if (!aulasMap[chave]) {
+          aulasMap[chave] = {
+            data: d.data,
+            turma: d.turma,
+            tema: d.tema || 'Não informado',
+            presentes: 0,
+            ausentes: 0
+          };
+        }
+        if (d.presenca === 'Presente') aulasMap[chave].presentes++;
+        else aulasMap[chave].ausentes++;
+      });
+
+      const listaAulas = Object.values(aulasMap).sort((a, b) => new Date(b.data) - new Date(a.data));
+
+      if (listaAulas.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center font-bold text-slate-500">Nenhum registro de aula encontrado.</td></tr>';
+        return;
+      }
+
+      listaAulas.forEach(a => {
+        const dataFormatada = a.data.split('-').reverse().join('/');
+        tbody.innerHTML += `
+          <tr class="border-b hover:bg-slate-50 font-semibold">
+            <td class="p-3 border font-bold text-slate-900">${dataFormatada}</td>
+            <td class="p-3 border">${a.turma}</td>
+            <td class="p-3 border font-bold text-amber-700">${a.tema}</td>
+            <td class="p-3 border text-center text-emerald-700 font-bold">${a.presentes}</td>
+            <td class="p-3 border text-center text-red-600 font-bold">${a.ausentes}</td>
+          </tr>
+        `;
+      });
     }
 
     // --- SELEÇÃO DE HISTÓRICO POR MÊS E LISTA SUSPENSA DE DIAS ---
@@ -849,7 +943,6 @@
         return;
       }
 
-      // Filtra todas as datas do diário que pertencem ao mês selecionado
       const datasDoMes = Array.from(new Set(
         (window.db.diario || [])
           .map(d => d.data)
@@ -1083,7 +1176,10 @@
 
       const dataAula = document.getElementById('diario-bloco-data').value;
       const turma = document.getElementById('diario-bloco-turma').value;
+      const temaAula = document.getElementById('diario-bloco-tema').value;
+
       if (!dataAula) return alert('Selecione uma data para a aula!');
+      if (!temaAula) return alert('Informe o tema/conteúdo da aula!');
 
       const rows = document.querySelectorAll('#tb-chamada-bloco-body tr');
       if (rows.length === 0) return alert('Não há alunos para registrar nesta turma.');
@@ -1099,6 +1195,7 @@
           id: 'diario_' + Date.now().toString() + '_' + alunoId,
           data: dataAula,
           turma: turma,
+          tema: temaAula,
           alunoId: alunoId,
           alunoNome: alunoNome,
           presenca: presenca,
@@ -1112,7 +1209,9 @@
         salvos++;
       }
       alert(`Chamada gravada com sucesso para os ${salvos} alunos da turma!`);
+      document.getElementById('diario-bloco-tema').value = '';
       atualizarDiasDoMes();
+      renderHistoricoGeral();
     }
 
     async function excluirRegistroDiario(id) {
@@ -1122,6 +1221,7 @@
           await window.excluirDiarioBD(id);
           filtrarHistoricoPorData();
           atualizarDiasDoMes();
+          renderHistoricoGeral();
         } catch(err) {
           alert('Erro ao excluir: ' + err.message);
         }
