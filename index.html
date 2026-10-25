@@ -234,7 +234,7 @@
       </div>
     </section>
 
-    <!-- 2. REGISTRO DIÁRIO EM BLOCO (COM CAMPO DE TEMA DA AULA) -->
+    <!-- 2. REGISTRO DIÁRIO EM BLOCO (TEMA E OBS OBRIGATÓRIOS) -->
     <section id="sec-diario" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
@@ -253,9 +253,9 @@
               <option value="Vespertino">Vespertino</option>
             </select>
           </div>
-          <div class="md:col-span-1">
-            <label class="block text-sm font-bold text-slate-900 mb-1">Tema / Conteúdo da Aula:</label>
-            <input type="text" id="diario-bloco-tema" placeholder="Ex: Introdução à Magnetismo" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Tema / Conteúdo (Obrigatório):</label>
+            <input type="text" id="diario-bloco-tema" placeholder="Ex: Introdução ao Magnetismo" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
           </div>
         </div>
 
@@ -269,7 +269,7 @@
                   <th class="p-3 border w-44">Participação</th>
                   <th class="p-3 border w-44">Atividades</th>
                   <th class="p-3 border w-44">Compreensão</th>
-                  <th class="p-3 border">Observação Pedagógica</th>
+                  <th class="p-3 border">Observação Pedagógica (Obrigatório)</th>
                 </tr>
               </thead>
               <tbody id="tb-chamada-bloco-body">
@@ -285,7 +285,7 @@
       </div>
     </section>
 
-    <!-- 3. NOVA ABA: HISTÓRICO GERAL DE AULAS (TEMA, PRESENTES, AUSENTES + FILTRO DE TURMA) -->
+    <!-- 3. HISTÓRICO GERAL DE AULAS (COM FILTRO DE TURMA) -->
     <section id="sec-historico-geral" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
@@ -321,16 +321,24 @@
       </div>
     </section>
 
-    <!-- 4. CONSULTA DE CHAMADA POR DATA -->
+    <!-- 4. CONSULTA DE CHAMADA POR DATA (COM FILTRO DE TURMA) -->
     <section id="sec-historico" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-calendar-days text-amber-600"></i> Consulta de Chamada por Data
         </h2>
 
-        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
           <div>
-            <label class="block text-sm font-black text-slate-900 mb-1">1. Escolha o Mês:</label>
+            <label class="block text-sm font-black text-slate-900 mb-1">1. Filtrar por Turma:</label>
+            <select id="filtro-consulta-turma" onchange="atualizarDiasDoMes()" class="w-full border-2 border-slate-400 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900">
+              <option value="Matutino">Matutino</option>
+              <option value="Vespertino">Vespertino</option>
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-black text-slate-900 mb-1">2. Escolha o Mês:</label>
             <select id="filtro-mes-historico" onchange="atualizarDiasDoMes()" class="w-full border-2 border-slate-400 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900">
               <option value="">Selecione o Mês...</option>
               <option value="01">Janeiro</option>
@@ -349,15 +357,15 @@
           </div>
 
           <div>
-            <label class="block text-sm font-black text-slate-900 mb-1">2. Escolha o Dia com Aula Registrada:</label>
+            <label class="block text-sm font-black text-slate-900 mb-1">3. Escolha o Dia com Aula:</label>
             <select id="filtro-dia-historico" onchange="filtrarHistoricoPorData()" class="w-full border-2 border-amber-500 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900 shadow-inner">
-              <option value="">Primeiro selecione o mês acima...</option>
+              <option value="">Selecione turma e mês primeiro...</option>
             </select>
           </div>
         </div>
 
         <div id="status-filtro-data" class="text-sm font-bold text-slate-700 bg-slate-50 px-4 py-3 rounded-lg border border-slate-300 mb-4 shadow-sm">
-          Aguardando seleção de mês e data.
+          Aguardando seleção de turma, mês e data.
         </div>
 
         <div class="overflow-x-auto">
@@ -376,7 +384,7 @@
             </thead>
             <tbody id="tb-diario-body">
               <tr>
-                <td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione o mês e o dia para visualizar os registros.</td>
+                <td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione os filtros acima para visualizar os registros.</td>
               </tr>
             </tbody>
           </table>
@@ -879,16 +887,15 @@
       if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
     }
 
-    // --- RENDERIZAR HISTÓRICO GERAL DE AULAS (COM FILTRO DE TURMA, TEMA, PRESENTES E AUSENTES) ---
+    // --- RENDERIZAR HISTÓRICO GERAL DE AULAS ---
     function renderHistoricoGeral() {
       const tbody = document.getElementById('tb-historico-geral-body');
       const filtroTurma = document.getElementById('filtro-hist-geral-turma').value;
       tbody.innerHTML = '';
 
       const diario = window.db.diario || [];
-      
-      // Agrupar registros por data e turma para consolidar as aulas ministradas
       const aulasMap = {};
+      
       diario.forEach(d => {
         if (!d.data || !d.turma) return;
         if (filtroTurma !== 'TODAS' && d.turma !== filtroTurma) return;
@@ -928,34 +935,35 @@
       });
     }
 
-    // --- SELEÇÃO DE HISTÓRICO POR MÊS E LISTA SUSPENSA DE DIAS ---
+    // --- CONSULTA POR DATA COM FILTRO DE TURMA E MÊS ---
     function atualizarDiasDoMes() {
+      const turmaSelecionada = document.getElementById('filtro-consulta-turma').value;
       const mesSelecionado = document.getElementById('filtro-mes-historico').value;
       const selectDias = document.getElementById('filtro-dia-historico');
       const tbody = document.querySelector('#sec-historico #tb-diario-body');
       const statusInfo = document.getElementById('status-filtro-data');
 
       selectDias.innerHTML = '<option value="">Selecione o dia da aula...</option>';
-      tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione o mês e o dia para visualizar os registros.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione turma, mês e dia para visualizar os registros.</td></tr>';
       
       if (!mesSelecionado) {
-        statusInfo.innerText = "Por favor, selecione um mês primeiro.";
+        statusInfo.innerText = "Por favor, selecione um mês.";
         return;
       }
 
       const datasDoMes = Array.from(new Set(
         (window.db.diario || [])
+          .filter(d => d.turma === turmaSelecionada && d.data && d.data.split('-')[1] === mesSelecionado)
           .map(d => d.data)
-          .filter(data => data && data.split('-')[1] === mesSelecionado)
       )).sort().reverse();
 
       if (datasDoMes.length === 0) {
-        selectDias.innerHTML = '<option value="">Nenhuma aula registrada neste mês</option>';
-        statusInfo.innerText = "Nenhum registro de aula encontrado para o mês selecionado.";
+        selectDias.innerHTML = '<option value="">Nenhuma aula para esta turma neste mês</option>';
+        statusInfo.innerText = "Nenhum registro de aula encontrado para a turma e mês selecionados.";
         return;
       }
 
-      statusInfo.innerText = `Encontrados ${datasDoMes.length} dias com aulas registradas neste mês. Selecione um dia acima.`;
+      statusInfo.innerText = `Encontrados ${datasDoMes.length} dias com aulas registradas para a turma ${turmaSelecionada}.`;
 
       datasDoMes.forEach(dataStr => {
         const [ano, mes, dia] = dataStr.split('-');
@@ -968,6 +976,7 @@
     }
 
     function filtrarHistoricoPorData() {
+      const turmaSelecionada = document.getElementById('filtro-consulta-turma').value;
       const dataSelecionada = document.getElementById('filtro-dia-historico').value;
       const tbody = document.querySelector('#sec-historico #tb-diario-body');
       const statusInfo = document.getElementById('status-filtro-data');
@@ -980,9 +989,9 @@
       }
 
       const dataFormatada = dataSelecionada.split('-').reverse().join('/');
-      statusInfo.innerHTML = `<span class="text-emerald-700 font-black"><i class="fa-solid fa-calendar-check"></i> Exibindo registros do dia: ${dataFormatada}</span>`;
+      statusInfo.innerHTML = `<span class="text-emerald-700 font-black"><i class="fa-solid fa-calendar-check"></i> Exibindo registros da turma ${turmaSelecionada} em ${dataFormatada}</span>`;
 
-      const registrosDoDia = (window.db.diario || []).filter(d => d.data === dataSelecionada);
+      const registrosDoDia = (window.db.diario || []).filter(d => d.data === dataSelecionada && d.turma === turmaSelecionada);
 
       if (registrosDoDia.length === 0) {
         tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center font-bold text-amber-900 bg-amber-50 rounded">Nenhum registro encontrado para esta data.</td></tr>`;
@@ -1091,7 +1100,7 @@
       document.getElementById('aluno-id').value = '';
     }
 
-    // 2. REGISTRO EM BLOCO
+    // 2. REGISTRO EM BLOCO (TEMA E OBS OBRIGATÓRIOS)
     function carregarChamadaBloco() {
       const turma = document.getElementById('diario-bloco-turma').value;
       const tbody = document.getElementById('tb-chamada-bloco-body');
@@ -1140,7 +1149,7 @@
               </select>
             </td>
             <td class="p-2 border">
-              <input type="text" name="bloco-obs" placeholder="Obs..." class="w-full border border-slate-400 rounded p-1 text-xs">
+              <input type="text" name="bloco-obs" placeholder="Obs obrigatória..." required class="w-full border border-slate-400 rounded p-1 text-xs font-semibold">
             </td>
           </tr>
         `;
@@ -1179,7 +1188,7 @@
       const temaAula = document.getElementById('diario-bloco-tema').value;
 
       if (!dataAula) return alert('Selecione uma data para a aula!');
-      if (!temaAula) return alert('Informe o tema/conteúdo da aula!');
+      if (!temaAula) return alert('O campo Tema / Conteúdo da aula é obrigatório!');
 
       const rows = document.querySelectorAll('#tb-chamada-bloco-body tr');
       if (rows.length === 0) return alert('Não há alunos para registrar nesta turma.');
@@ -1189,6 +1198,13 @@
         const alunoId = tr.querySelector('input[name="bloco-aluno-id"]').value;
         const alunoNome = tr.querySelector('input[name="bloco-aluno-nome"]').value;
         const presenca = tr.querySelector('select[name="bloco-presenca"]').value;
+        const obsVal = tr.querySelector('input[name="bloco-obs"]').value;
+
+        if (!obsVal) {
+          alert(`O campo de Observação Pedagógica é obrigatório para todos os alunos.`);
+          return;
+        }
+
         const isAusente = presenca === 'Ausente';
 
         const registro = {
@@ -1202,7 +1218,7 @@
           participacao: isAusente ? 'Nenhuma' : tr.querySelector('select[name="bloco-participacao"]').value,
           atividades: isAusente ? 'Não realiza' : tr.querySelector('select[name="bloco-atividades"]').value,
           compreensao: isAusente ? 'Não suficiente' : tr.querySelector('select[name="bloco-compreensao"]').value,
-          obs: tr.querySelector('input[name="bloco-obs"]').value
+          obs: obsVal
         };
 
         await window.salvarDiarioBD(registro);
@@ -1210,6 +1226,7 @@
       }
       alert(`Chamada gravada com sucesso para os ${salvos} alunos da turma!`);
       document.getElementById('diario-bloco-tema').value = '';
+      carregarChamadaBloco();
       atualizarDiasDoMes();
       renderHistoricoGeral();
     }
