@@ -48,7 +48,6 @@
     body.read-only-mode .admin-only {
       display: none !important;
     }
-    /* Estilo para destacar dias com aula no input date nativo ou caixas customizadas */
     input[type="date"]::-webkit-calendar-picker-indicator {
       cursor: pointer;
       filter: invert(0.8);
@@ -283,21 +282,32 @@
       </div>
     </section>
 
-    <!-- 3. HISTÓRICO DE AULAS POR CALENDÁRIO -->
+    <!-- 3. HISTÓRICO DE AULAS POR CALENDÁRIO COM DESTAQUE DE ALTO CONTRASTE -->
     <section id="sec-historico" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-calendar-days text-amber-600"></i> Histórico de Registros por Data
         </h2>
 
-        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 flex flex-wrap items-center justify-between gap-4">
+        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 space-y-4">
           <div>
-            <label class="block text-sm font-black text-slate-900 mb-1">Selecione o Dia da Aula no Calendário:</label>
-            <p class="text-xs text-slate-600 font-semibold mb-2">Os dias marcados com <span class="inline-block w-3 h-3 bg-amber-500 rounded-full mx-0.5"></span> indicam aulas já cadastradas.</p>
+            <label class="block text-sm font-black text-slate-900 mb-1">Selecione a Data da Aula:</label>
+            <p class="text-xs text-slate-600 font-semibold mb-2">Escolha uma data para consultar o registro da chamada:</p>
             <input type="date" id="calendario-historico" onchange="filtrarHistoricoPorData()" class="border-2 border-amber-500 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900 shadow-inner">
           </div>
+
+          <!-- PAINEL VISUAL DE DIAS COM AULA (ALTO CONTRASTE) -->
+          <div>
+            <p class="text-xs font-black text-slate-900 uppercase tracking-wider mb-2">
+              <i class="fa-solid fa-circle-check text-emerald-700"></i> Dias com aulas cadastradas (Clique para acesso rápido):
+            </p>
+            <div id="lista-dias-com-aula" class="flex flex-wrap gap-2">
+              <!-- Gerado dinamicamente via JS -->
+            </div>
+          </div>
+
           <div id="status-filtro-data" class="text-sm font-bold text-slate-700 bg-white px-4 py-2 rounded-lg border border-slate-300 shadow-sm">
-            Nenhuma data selecionada. Escolha um dia acima.
+            Nenhuma data selecionada. Escolha um dia acima ou clique em um dos dias destacados.
           </div>
         </div>
 
@@ -709,7 +719,6 @@
         window.db.diario.push({ id: docSnap.id, ...docSnap.data() });
       });
       setConnectionStatus(true);
-      // Atualiza destaques do calendário ao receber dados
       if (typeof window.atualizarDestaquesCalendario === 'function') window.atualizarDestaquesCalendario();
       if (!document.getElementById('sec-individual').classList.contains('hidden')) window.gerarRelatorioIndividual();
       if (!document.getElementById('sec-turma').classList.contains('hidden')) window.gerarRelatorioTurma();
@@ -819,18 +828,33 @@
       if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
     }
 
-    // --- CALENDÁRIO COM DESTAQUE PARA DIAS COM AULA ---
+    // --- PAINEL DE DIAS COM AULA (ALTO CONTRASTE) ---
     function atualizarDestaquesCalendario() {
-      const inputCal = document.getElementById('calendario-historico');
-      if (!inputCal) return;
+      const containerDias = document.getElementById('lista-dias-com-aula');
+      if (!containerDias) return;
+      containerDias.innerHTML = '';
 
-      // Recolhe todas as datas unicas que possuem registros no diario
-      const datasComAula = new Set((window.db.diario || []).map(d => d.data));
-      
-      // Aplicamos um atributo customizado ou estilo visual indicativo no input
-      if (datasComAula.size > 0) {
-        inputCal.title = `Dias com aula registrada: ${Array.from(datasComAula).join(', ')}`;
+      const datasComAula = Array.from(new Set((window.db.diario || []).map(d => d.data))).sort().reverse();
+
+      if (datasComAula.length === 0) {
+        containerDias.innerHTML = '<span class="text-xs text-slate-500 font-semibold italic">Nenhuma aula cadastrada no sistema ainda.</span>';
+        return;
       }
+
+      datasComAula.forEach(dataStr => {
+        const [ano, mes, dia] = dataStr.split('-');
+        const dataFormatada = `${dia}/${mes}/${ano}`;
+
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = "px-3 py-1.5 bg-amber-400 hover:bg-amber-500 text-slate-950 font-black text-xs rounded-lg border-2 border-amber-600 shadow flex items-center gap-1.5 transition-transform hover:scale-105 cursor-pointer";
+        btn.innerHTML = `<i class="fa-solid fa-calendar-day"></i> ${dataFormatada}`;
+        btn.onclick = function() {
+          document.getElementById('calendario-historico').value = dataStr;
+          filtrarHistoricoPorData();
+        };
+        containerDias.appendChild(btn);
+      });
     }
 
     function filtrarHistoricoPorData() {
@@ -851,7 +875,7 @@
       const registrosDoDia = (window.db.diario || []).filter(d => d.data === dataSelecionada);
 
       if (registrosDoDia.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center font-bold text-amber-700 bg-amber-50 rounded">Nenhum registro de aula encontrado para a data ${dataFormatada}.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center font-bold text-amber-900 bg-amber-50 rounded">Nenhum registro de aula encontrado para a data ${dataFormatada}.</td></tr>`;
         return;
       }
 
@@ -1178,7 +1202,7 @@
       document.getElementById('turma-out-comp-nsuficiente').innerText = calcPct('Não suficiente');
     }
 
-    // 6. FREQUÊNCIA DA SECRETARIA (ATUALIZADO COM RESUMO E SEM TURMA NA TABELA)
+    // 6. FREQUÊNCIA DA SECRETARIA
     function gerarRelatorioSecretaria() {
       const alunoId = document.getElementById('sec-aluno-select').value;
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
