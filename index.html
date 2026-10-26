@@ -66,7 +66,7 @@
         </div>
         <div>
           <h1 class="text-2xl font-black tracking-wide text-amber-400">ACOMPANHAMENTO PEDAGÓGICO</h1>
-          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Gestão de Turmas e Alunos</p>
+          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider" id="header-professor-sub">Gestão Dinâmica de Turnos, Turmas e Disciplinas</p>
         </div>
       </div>
       
@@ -90,7 +90,10 @@
     <!-- Navegação por Abas -->
     <nav class="bg-slate-950 border-t border-slate-800">
       <div class="max-w-7xl mx-auto px-4 flex flex-wrap gap-1">
-        <button onclick="switchTab('alunos')" id="tab-alunos" class="nav-btn active px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+        <button onclick="switchTab('config')" id="tab-config" class="nav-btn active px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+          <i class="fa-solid fa-gears text-amber-400 text-base"></i> Configurações Escolares
+        </button>
+        <button onclick="switchTab('alunos')" id="tab-alunos" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-users text-amber-400 text-base"></i> Cadastro de Alunos
         </button>
         <button onclick="switchTab('diario')" id="tab-diario" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
@@ -128,19 +131,48 @@
       </div>
     </div>
 
-    <!-- 1. CADASTRO DE ALUNOS -->
-    <section id="sec-alunos" class="space-y-6">
-      <div class="admin-only bg-white rounded-xl shadow-md border-2 border-slate-300 p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 class="text-sm font-black text-slate-900"><i class="fa-solid fa-image text-amber-600"></i> Logotipo Escolar para Relatórios PDF:</h3>
-          <p class="text-xs text-slate-500">Insira a imagem que aparecerá no cabeçalho de todos os PDFs exportados.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <input type="file" id="logo-input" accept="image/*" onchange="carregarLogo(event)" class="text-xs file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-amber-400 hover:file:bg-slate-800 cursor-pointer">
-          <button onclick="removerLogo()" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </div>
+    <!-- 0. CONFIGURAÇÕES ESCOLARES (PROFESSOR, TURMAS E DISCIPLINAS) -->
+    <section id="sec-config" class="space-y-6">
+      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+        <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
+          <i class="fa-solid fa-sliders text-amber-600"></i> Configurações Gerais do Sistema
+        </h2>
+        <p class="text-xs text-slate-600 mb-6">Cadastre aqui o professor responsável, as turmas e as disciplinas da escola. Todo o sistema se atualizará automaticamente com estes dados.</p>
 
+        <form id="form-config" onsubmit="salvarConfiguracoes(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
+            <label class="block text-sm font-bold text-slate-900 mb-1">Nome do(a) Professor(a) Responsável:</label>
+            <input type="text" id="config-professor" placeholder="Ex: Prof. Ricardo Wagner" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 bg-white">
+            <p class="text-xs text-slate-500 mt-1">Aparecerá nos relatórios oficiais e PDFs exportados.</p>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
+            <h3 class="text-sm font-black text-slate-900 mb-2"><i class="fa-solid fa-image text-amber-600"></i> Logotipo Escolar para PDF:</h3>
+            <input type="file" id="logo-input" accept="image/*" onchange="carregarLogo(event)" class="text-xs file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-amber-400 hover:file:bg-slate-800 cursor-pointer">
+            <button type="button" onclick="removerLogo()" class="mt-2 px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i> Remover Logotipo</button>
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
+            <label class="block text-sm font-bold text-slate-900 mb-1">Turmas da Escola (separadas por vírgula):</label>
+            <input type="text" id="config-turmas" placeholder="Ex: Matutino, Vespertino" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 bg-white">
+          </div>
+
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
+            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplinas Lecionadas (separadas por vírgula):</label>
+            <input type="text" id="config-disciplinas" placeholder="Ex: Disciplina 1, Disciplina 2" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 bg-white">
+          </div>
+
+          <div class="md:col-span-2 admin-only">
+            <button type="submit" class="btn-contrast py-3 px-6 rounded-lg flex items-center justify-center gap-2 w-full">
+              <i class="fa-solid fa-floppy-disk"></i> Salvar Configurações no Firebase
+            </button>
+          </div>
+        </form>
+      </div>
+    </section>
+
+    <!-- 1. CADASTRO DE ALUNOS -->
+    <section id="sec-alunos" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 admin-only">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-user-plus text-amber-600"></i> Cadastrar / Editar Aluno
@@ -149,30 +181,29 @@
           <input type="hidden" id="aluno-id">
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Nome Completo do Aluno(a):</label>
-            <input type="text" id="aluno-nome" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+            <input type="text" id="aluno-nome" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Turma:</label>
-            <select id="aluno-turma" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
-              <option value="Matutino">Matutino</option>
-              <option value="Vespertino">Vespertino</option>
+            <select id="aluno-turma" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 dynamic-turmas-select">
+              <!-- Dinâmico -->
             </select>
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Matrícula Escolar:</label>
-            <input type="text" id="aluno-matricula" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+            <input type="text" id="aluno-matricula" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Usuário ClickIdeia:</label>
-            <input type="text" id="aluno-user-click" class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+            <input type="text" id="aluno-user-click" class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Senha ClickIdeia:</label>
-            <input type="text" id="aluno-pass-click" class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 focus:border-amber-500 focus:outline-none">
+            <input type="text" id="aluno-pass-click" class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Situação do Cadastro:</label>
-            <select id="aluno-status" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900 focus:border-amber-500 focus:outline-none">
+            <select id="aluno-status" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
               <option value="Ativo">Ativo (Em Frequência)</option>
               <option value="Inativo">Inativo (Formado / Transferido)</option>
             </select>
@@ -197,10 +228,8 @@
           <div class="flex flex-wrap items-center gap-3">
             <div>
               <label class="text-xs font-bold text-slate-700 mr-1">Turma:</label>
-              <select id="filtro-turma-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
-                <option value="TODAS">Todas as Turmas</option>
-                <option value="Matutino">Matutino</option>
-                <option value="Vespertino">Vespertino</option>
+              <select id="filtro-turma-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50 dynamic-turmas-filtro">
+                <!-- Dinâmico -->
               </select>
             </div>
             <div>
@@ -226,36 +255,39 @@
                 <th class="p-3 border text-center admin-only">Ações</th>
               </tr>
             </thead>
-            <tbody id="tb-alunos-body">
-              <!-- Renderizado via JS -->
-            </tbody>
+            <tbody id="tb-alunos-body"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 2. REGISTRO DIÁRIO EM BLOCO (TEMA E OBS OBRIGATÓRIOS) -->
+    <!-- 2. REGISTRO DIÁRIO EM BLOCO -->
     <section id="sec-diario" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-list-check text-amber-600"></i> Registro Diário de Aula em Bloco
         </h2>
 
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 bg-slate-100 p-4 rounded-lg border border-slate-300 mb-6">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 bg-slate-100 p-4 rounded-lg border border-slate-300 mb-6">
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Data da Aula:</label>
             <input type="date" id="diario-bloco-data" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Turma para Lançamento:</label>
-            <select id="diario-bloco-turma" onchange="carregarChamadaBloco()" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900">
-              <option value="Matutino">Matutino</option>
-              <option value="Vespertino">Vespertino</option>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Turma:</label>
+            <select id="diario-bloco-turma" onchange="carregarChamadaBloco()" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900 dynamic-turmas-select">
+              <!-- Dinâmico -->
             </select>
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Tema / Conteúdo (Obrigatório):</label>
-            <input type="text" id="diario-bloco-tema" placeholder="Ex: Introdução ao Magnetismo" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
+            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
+            <select id="diario-bloco-disciplina" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold text-slate-900 bg-amber-50 dynamic-disciplinas-select">
+              <!-- Dinâmico -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Tema / Conteúdo:</label>
+            <input type="text" id="diario-bloco-tema" placeholder="Ex: Magnetismo" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900">
           </div>
         </div>
 
@@ -272,9 +304,7 @@
                   <th class="p-3 border">Observação Pedagógica (Obrigatório)</th>
                 </tr>
               </thead>
-              <tbody id="tb-chamada-bloco-body">
-                <!-- Preenchido via JS -->
-              </tbody>
+              <tbody id="tb-chamada-bloco-body"></tbody>
             </table>
           </div>
 
@@ -285,20 +315,26 @@
       </div>
     </section>
 
-    <!-- 3. HISTÓRICO GERAL DE AULAS (COM FILTRO DE TURMA) -->
+    <!-- 3. HISTÓRICO GERAL DE AULAS -->
     <section id="sec-historico-geral" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
           <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
             <i class="fa-solid fa-book-open text-amber-600"></i> Histórico Geral de Aulas Ministradas
           </h2>
-          <div>
-            <label class="text-xs font-bold text-slate-700 mr-2">Filtrar por Turma:</label>
-            <select id="filtro-hist-geral-turma" onchange="renderHistoricoGeral()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
-              <option value="TODAS">Todas as Turmas</option>
-              <option value="Matutino">Matutino</option>
-              <option value="Vespertino">Vespertino</option>
-            </select>
+          <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label class="text-xs font-bold text-slate-700 mr-1">Turma:</label>
+              <select id="filtro-hist-geral-turma" onchange="renderHistoricoGeral()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50 dynamic-turmas-filtro">
+                <!-- Dinâmico -->
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-slate-700 mr-1">Disciplina:</label>
+              <select id="filtro-hist-geral-disc" onchange="renderHistoricoGeral()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50 dynamic-disciplinas-filtro">
+                <!-- Dinâmico -->
+              </select>
+            </div>
           </div>
         </div>
 
@@ -308,37 +344,42 @@
               <tr class="bg-slate-900 text-white">
                 <th class="p-3 border">Data</th>
                 <th class="p-3 border">Turma</th>
+                <th class="p-3 border">Disciplina</th>
                 <th class="p-3 border">Tema / Conteúdo Trabalhado</th>
                 <th class="p-3 border text-center">Alunos Presentes</th>
                 <th class="p-3 border text-center">Alunos Ausentes</th>
               </tr>
             </thead>
-            <tbody id="tb-historico-geral-body">
-              <!-- Renderizado via JS -->
-            </tbody>
+            <tbody id="tb-historico-geral-body"></tbody>
           </table>
         </div>
       </div>
     </section>
 
-    <!-- 4. CONSULTA DE CHAMADA POR DATA (COM FILTRO DE TURMA) -->
+    <!-- 4. CONSULTA DE CHAMADA POR DATA -->
     <section id="sec-historico" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-calendar-days text-amber-600"></i> Consulta de Chamada por Data
         </h2>
 
-        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="bg-slate-100 p-6 rounded-xl border-2 border-slate-300 mb-6 grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-black text-slate-900 mb-1">1. Filtrar por Turma:</label>
-            <select id="filtro-consulta-turma" onchange="atualizarDiasDoMes()" class="w-full border-2 border-slate-400 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900">
-              <option value="Matutino">Matutino</option>
-              <option value="Vespertino">Vespertino</option>
+            <label class="block text-sm font-black text-slate-900 mb-1">1. Turma:</label>
+            <select id="filtro-consulta-turma" onchange="atualizarDiasDoMes()" class="w-full border-2 border-slate-400 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900 dynamic-turmas-select">
+              <!-- Dinâmico -->
             </select>
           </div>
 
           <div>
-            <label class="block text-sm font-black text-slate-900 mb-1">2. Escolha o Mês:</label>
+            <label class="block text-sm font-black text-slate-900 mb-1">2. Disciplina:</label>
+            <select id="filtro-consulta-disc" onchange="atualizarDiasDoMes()" class="w-full border-2 border-slate-400 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900 dynamic-disciplinas-select">
+              <!-- Dinâmico -->
+            </select>
+          </div>
+
+          <div>
+            <label class="block text-sm font-black text-slate-900 mb-1">3. Mês:</label>
             <select id="filtro-mes-historico" onchange="atualizarDiasDoMes()" class="w-full border-2 border-slate-400 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900">
               <option value="">Selecione o Mês...</option>
               <option value="01">Janeiro</option>
@@ -357,15 +398,15 @@
           </div>
 
           <div>
-            <label class="block text-sm font-black text-slate-900 mb-1">3. Escolha o Dia com Aula:</label>
+            <label class="block text-sm font-black text-slate-900 mb-1">4. Dia da Aula:</label>
             <select id="filtro-dia-historico" onchange="filtrarHistoricoPorData()" class="w-full border-2 border-amber-500 rounded-lg p-2.5 font-bold text-base bg-white text-slate-900 shadow-inner">
-              <option value="">Selecione turma e mês primeiro...</option>
+              <option value="">Selecione filtros acima...</option>
             </select>
           </div>
         </div>
 
         <div id="status-filtro-data" class="text-sm font-bold text-slate-700 bg-slate-50 px-4 py-3 rounded-lg border border-slate-300 mb-4 shadow-sm">
-          Aguardando seleção de turma, mês e data.
+          Aguardando seleção de filtros.
         </div>
 
         <div class="overflow-x-auto">
@@ -373,6 +414,7 @@
             <thead>
               <tr class="bg-slate-900 text-white">
                 <th class="p-2.5 border">Turma</th>
+                <th class="p-2.5 border">Disciplina</th>
                 <th class="p-2.5 border">Aluno</th>
                 <th class="p-2.5 border">Presença</th>
                 <th class="p-2.5 border">Participação</th>
@@ -382,11 +424,7 @@
                 <th class="p-2.5 border text-center admin-only">Ações</th>
               </tr>
             </thead>
-            <tbody id="tb-diario-body">
-              <tr>
-                <td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione os filtros acima para visualizar os registros.</td>
-              </tr>
-            </tbody>
+            <tbody id="tb-diario-body"></tbody>
           </table>
         </div>
       </div>
@@ -403,13 +441,19 @@
             <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
           </button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Aluno(a):</label>
             <select id="rel-ind-aluno" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Mês Desejado:</label>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
+            <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro">
+              <!-- Dinâmico -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Mês:</label>
             <select id="rel-ind-mes" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
               <option value="TODOS">Ano Inteiro (Todos)</option>
               <option value="1">Janeiro</option>
@@ -427,7 +471,7 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Ano Desejado:</label>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Ano:</label>
             <input type="number" id="rel-ind-ano" value="2026" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
           </div>
         </div>
@@ -439,7 +483,7 @@
             <img id="img-logo-relatorio" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
-          <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
+          <p class="text-sm font-bold text-slate-600" id="print-prof-ind">Acompanhamento Pedagógico</p>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
@@ -448,7 +492,7 @@
             <p id="ind-out-nome" class="text-xl font-black text-slate-900">-</p>
           </div>
           <div>
-            <p class="text-xs text-slate-500 uppercase font-bold">Período de Análise:</p>
+            <p class="text-xs text-slate-500 uppercase font-bold">Disciplina e Período:</p>
             <p id="ind-out-periodo" class="text-lg font-bold text-amber-600">-</p>
           </div>
         </div>
@@ -540,16 +584,21 @@
             <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
           </button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Escolha a Turma:</label>
-            <select id="rel-turma-select" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
-              <option value="Matutino">Matutino</option>
-              <option value="Vespertino">Vespertino</option>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Turma:</label>
+            <select id="rel-turma-select" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold dynamic-turmas-select">
+              <!-- Dinâmico -->
             </select>
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Escolha o Mês:</label>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
+            <select id="rel-turma-disc" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro">
+              <!-- Dinâmico -->
+            </select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Mês:</label>
             <select id="rel-turma-mes" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
               <option value="TODOS">Ano Inteiro (Todos)</option>
               <option value="1">Janeiro</option>
@@ -567,7 +616,7 @@
             </select>
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Escolha o Ano:</label>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Ano:</label>
             <input type="number" id="rel-turma-ano" value="2026" onchange="gerarRelatorioTurma()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold">
           </div>
         </div>
@@ -579,13 +628,13 @@
             <img id="img-logo-turma" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">ACOMPANHAMENTO COLETIVO DA TURMA</h1>
-          <p class="text-sm font-bold text-slate-600">Relatório Consolidado de Frequência e Rendimento</p>
+          <p class="text-sm font-bold text-slate-600" id="print-prof-turma">Relatório Consolidado</p>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
           <div>
-            <p class="text-xs text-slate-500 uppercase font-bold">Turma Selecionada:</p>
-            <p id="turma-out-nome" class="text-2xl font-black text-slate-900">Matutino</p>
+            <p class="text-xs text-slate-500 uppercase font-bold">Turma e Disciplina:</p>
+            <p id="turma-out-nome" class="text-xl font-black text-slate-900">-</p>
           </div>
           <div>
             <p class="text-xs text-slate-500 uppercase font-bold">Período:</p>
@@ -640,9 +689,17 @@
             <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
           </button>
         </div>
-        <div>
-          <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
-          <select id="sec-aluno-select" onchange="gerarRelatorioSecretaria()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
+            <select id="sec-aluno-select" onchange="gerarRelatorioSecretaria()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
+          </div>
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
+            <select id="sec-disc-select" onchange="gerarRelatorioSecretaria()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro">
+              <!-- Dinâmico -->
+            </select>
+          </div>
         </div>
       </div>
 
@@ -652,12 +709,12 @@
             <img id="img-logo-secretaria" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 uppercase">DECLARAÇÃO DE FREQUÊNCIA ESCOLAR</h1>
-          <p class="text-sm font-bold text-slate-600">Documento Oficial de Acompanhamento de Assiduidade</p>
+          <p class="text-sm font-bold text-slate-600" id="print-prof-sec">Documento Oficial de Assiduidade</p>
         </div>
 
         <div class="bg-slate-100 p-4 rounded-lg border-2 border-slate-300 mb-6 font-bold space-y-1">
           <p><span class="text-slate-500 uppercase text-xs">Estudante:</span> <span id="sec-out-nome" class="text-lg text-slate-900">-</span></p>
-          <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Situação:</span> <span id="sec-out-status" class="text-slate-900">-</span></p>
+          <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Disciplina:</span> <span id="sec-out-disc" class="text-amber-700">Todas</span> | <span class="text-slate-500 uppercase text-xs">Situação:</span> <span id="sec-out-status" class="text-slate-900">-</span></p>
         </div>
 
         <!-- Bloco de Resumo Estatístico -->
@@ -685,18 +742,17 @@
           <thead>
             <tr class="bg-slate-900 text-white">
               <th class="p-2 border">Data da Aula</th>
+              <th class="p-2 border">Disciplina</th>
               <th class="p-2 border">Status de Presença</th>
               <th class="p-2 border">Observações Pedagógicas</th>
             </tr>
           </thead>
-          <tbody id="sec-out-tb">
-            <!-- Preenchido via JS -->
-          </tbody>
+          <tbody id="sec-out-tb"></tbody>
         </table>
 
         <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center grid grid-cols-2 gap-8">
           <div>
-            <p class="border-t border-slate-900 pt-1 font-bold text-sm">Professor(a)</p>
+            <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor">Professor(a)</p>
           </div>
           <div>
             <p class="border-t border-slate-900 pt-1 font-bold text-sm">Secretaria Escolar</p>
@@ -708,7 +764,7 @@
   </main>
 
   <footer class="bg-slate-900 text-slate-400 text-center py-4 text-xs font-semibold no-print border-t border-slate-800">
-    Desenvolvido por Ricardo Wagner | Integrado ao Firebase Firestore
+    Sistema Acessível de Acompanhamento Pedagógico | Integrado ao Firebase Firestore
   </footer>
 
   <!-- Firebase JavaScript SDK (v10) -->
@@ -736,6 +792,7 @@
     const dbFirestore = getFirestore(app);
 
     window.db = {
+      config: { professor: "Prof. Ricardo Wagner", turmas: ["Matutino", "Vespertino"], disciplinas: ["Disciplina 1", "Disciplina 2"] },
       alunos: [],
       diario: []
     };
@@ -754,20 +811,43 @@
       }
     }
 
+    // Listener de Configurações
+    onSnapshot(doc(dbFirestore, "sistema", "configuracoes"), (docSnap) => {
+      if (docSnap.exists()) {
+        const data = docSnap.data();
+        window.db.config = {
+          professor: data.professor || "Prof. Ricardo Wagner",
+          turmas: data.turmas ? data.turmas.split(',').map(s => s.trim()).filter(Boolean) : ["Matutino", "Vespertino"],
+          disciplinas: data.disciplinas ? data.disciplinas.split(',').map(s => s.trim()).filter(Boolean) : ["Disciplina 1", "Disciplina 2"]
+        };
+        document.getElementById('config-professor').value = window.db.config.professor;
+        document.getElementById('config-turmas').value = window.db.config.turmas.join(', ');
+        document.getElementById('config-disciplinas').value = window.db.config.disciplinas.join(', ');
+      } else {
+        // Padrão inicial no Firestore se não existir
+        setDoc(doc(dbFirestore, "sistema", "configuracoes"), {
+          professor: "Prof. Ricardo Wagner",
+          turmas: "Matutino, Vespertino",
+          disciplinas: "Disciplina 1, Disciplina 2"
+        });
+      }
+      atualizarInterfacesDinamicas();
+      setConnectionStatus(true);
+    }, (error) => {
+      console.error("Erro no Firestore (Config):", error);
+      setConnectionStatus(false);
+    });
+
     onSnapshot(collection(dbFirestore, "alunos"), (snapshot) => {
       window.db.alunos = [];
       snapshot.forEach((docSnap) => {
         const data = docSnap.data();
         window.db.alunos.push({ id: docSnap.id, status: data.status || 'Ativo', ...data });
       });
-      setConnectionStatus(true);
       window.renderAlunos();
       if (!document.getElementById('sec-diario').classList.contains('hidden')) window.carregarChamadaBloco();
       if (!document.getElementById('sec-individual').classList.contains('hidden')) window.carregarSelectAlunos('rel-ind-aluno', window.gerarRelatorioIndividual);
       if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.carregarSelectAlunos('sec-aluno-select', window.gerarRelatorioSecretaria);
-    }, (error) => {
-      console.error("Erro no Firestore (Alunos):", error);
-      setConnectionStatus(false);
     });
 
     onSnapshot(collection(dbFirestore, "diario"), (snapshot) => {
@@ -775,16 +855,16 @@
       snapshot.forEach((docSnap) => {
         window.db.diario.push({ id: docSnap.id, ...docSnap.data() });
       });
-      setConnectionStatus(true);
       if (typeof window.atualizarDiasDoMes === 'function') window.atualizarDiasDoMes();
       if (typeof window.renderHistoricoGeral === 'function') window.renderHistoricoGeral();
       if (!document.getElementById('sec-individual').classList.contains('hidden')) window.gerarRelatorioIndividual();
       if (!document.getElementById('sec-turma').classList.contains('hidden')) window.gerarRelatorioTurma();
       if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.gerarRelatorioSecretaria();
-    }, (error) => {
-      console.error("Erro no Firestore (Diário):", error);
-      setConnectionStatus(false);
     });
+
+    window.salvarConfigBD = async function(configObj) {
+      await setDoc(doc(dbFirestore, "sistema", "configuracoes"), configObj);
+    };
 
     window.salvarAlunoBD = async function(alunoObj) {
       await setDoc(doc(dbFirestore, "alunos", alunoObj.id), alunoObj);
@@ -836,6 +916,71 @@
       }
     }
 
+    function atualizarInterfacesDinamicas() {
+      const cfg = window.db.config;
+      document.getElementById('header-professor-sub').innerText = `Professor(a): ${cfg.professor}`;
+      document.getElementById('print-prof-ind').innerText = `Professor(a): ${cfg.professor}`;
+      document.getElementById('print-prof-turma').innerText = `Professor(a): ${cfg.professor}`;
+      document.getElementById('print-prof-sec').innerText = `Professor(a): ${cfg.professor}`;
+      document.getElementById('assinatura-professor').innerText = cfg.professor;
+
+      // Preencher selects de Turmas
+      document.querySelectorAll('.dynamic-turmas-select').forEach(sel => {
+        const valAtual = sel.value;
+        sel.innerHTML = '';
+        cfg.turmas.forEach(t => {
+          sel.innerHTML += `<option value="${t}">${t}</option>`;
+        });
+        if (valAtual && cfg.turmas.includes(valAtual)) sel.value = valAtual;
+      });
+
+      document.querySelectorAll('.dynamic-turmas-filtro').forEach(sel => {
+        const valAtual = sel.value;
+        sel.innerHTML = '<option value="TODAS">Todas as Turmas</option>';
+        cfg.turmas.forEach(t => {
+          sel.innerHTML += `<option value="${t}">${t}</option>`;
+        });
+        if (valAtual) sel.value = valAtual;
+      });
+
+      // Preencher selects de Disciplinas
+      document.querySelectorAll('.dynamic-disciplinas-select').forEach(sel => {
+        const valAtual = sel.value;
+        sel.innerHTML = '';
+        cfg.disciplinas.forEach(d => {
+          sel.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+        if (valAtual && cfg.disciplinas.includes(valAtual)) sel.value = valAtual;
+      });
+
+      document.querySelectorAll('.dynamic-disciplinas-filtro').forEach(sel => {
+        const valAtual = sel.value;
+        sel.innerHTML = '<option value="TODAS">Todas as Disciplinas</option>';
+        cfg.disciplinas.forEach(d => {
+          sel.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+        if (valAtual) sel.value = valAtual;
+      });
+
+      if (!document.getElementById('sec-diario').classList.contains('hidden')) carregarChamadaBloco();
+    }
+
+    async function salvarConfiguracoes(e) {
+      e.preventDefault();
+      if (!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
+
+      const professor = document.getElementById('config-professor').value;
+      const turmas = document.getElementById('config-turmas').value;
+      const disciplinas = document.getElementById('config-disciplinas').value;
+
+      try {
+        await window.salvarConfigBD({ professor, turmas, disciplinas });
+        alert('Configurações salvas e aplicadas em todo o sistema com sucesso!');
+      } catch (err) {
+        alert('Erro ao salvar configurações: ' + err.message);
+      }
+    }
+
     function carregarLogo(event) {
       const file = event.target.files[0];
       if (!file) return;
@@ -872,7 +1017,7 @@
     }
 
     function switchTab(tabKey) {
-      ['alunos', 'diario', 'historico-geral', 'historico', 'individual', 'turma', 'secretaria'].forEach(key => {
+      ['config', 'alunos', 'diario', 'historico-geral', 'historico', 'individual', 'turma', 'secretaria'].forEach(key => {
         document.getElementById(`sec-${key}`).classList.add('hidden');
         document.getElementById(`tab-${key}`).classList.remove('active');
       });
@@ -891,6 +1036,7 @@
     function renderHistoricoGeral() {
       const tbody = document.getElementById('tb-historico-geral-body');
       const filtroTurma = document.getElementById('filtro-hist-geral-turma').value;
+      const filtroDisc = document.getElementById('filtro-hist-geral-disc').value;
       tbody.innerHTML = '';
 
       const diario = window.db.diario || [];
@@ -899,12 +1045,15 @@
       diario.forEach(d => {
         if (!d.data || !d.turma) return;
         if (filtroTurma !== 'TODAS' && d.turma !== filtroTurma) return;
+        const discRegistro = d.disciplina || window.db.config.disciplinas[0];
+        if (filtroDisc !== 'TODAS' && discRegistro !== filtroDisc) return;
 
-        const chave = `${d.data}_${d.turma}`;
+        const chave = `${d.data}_${d.turma}_${discRegistro}`;
         if (!aulasMap[chave]) {
           aulasMap[chave] = {
             data: d.data,
             turma: d.turma,
+            disciplina: discRegistro,
             tema: d.tema || 'Não informado',
             presentes: 0,
             ausentes: 0
@@ -917,7 +1066,7 @@
       const listaAulas = Object.values(aulasMap).sort((a, b) => new Date(b.data) - new Date(a.data));
 
       if (listaAulas.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="5" class="p-6 text-center font-bold text-slate-500">Nenhum registro de aula encontrado.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="6" class="p-6 text-center font-bold text-slate-500">Nenhum registro de aula encontrado com os filtros selecionados.</td></tr>';
         return;
       }
 
@@ -927,7 +1076,8 @@
           <tr class="border-b hover:bg-slate-50 font-semibold">
             <td class="p-3 border font-bold text-slate-900">${dataFormatada}</td>
             <td class="p-3 border">${a.turma}</td>
-            <td class="p-3 border font-bold text-amber-700">${a.tema}</td>
+            <td class="p-3 border font-bold text-amber-700">${a.disciplina}</td>
+            <td class="p-3 border font-semibold text-slate-900">${a.tema}</td>
             <td class="p-3 border text-center text-emerald-700 font-bold">${a.presentes}</td>
             <td class="p-3 border text-center text-red-600 font-bold">${a.ausentes}</td>
           </tr>
@@ -935,35 +1085,36 @@
       });
     }
 
-    // --- CONSULTA POR DATA COM FILTRO DE TURMA E MÊS ---
+    // --- CONSULTA POR DATA COM FILTROS ---
     function atualizarDiasDoMes() {
       const turmaSelecionada = document.getElementById('filtro-consulta-turma').value;
+      const discSelecionada = document.getElementById('filtro-consulta-disc').value;
       const mesSelecionado = document.getElementById('filtro-mes-historico').value;
       const selectDias = document.getElementById('filtro-dia-historico');
       const tbody = document.querySelector('#sec-historico #tb-diario-body');
       const statusInfo = document.getElementById('status-filtro-data');
 
       selectDias.innerHTML = '<option value="">Selecione o dia da aula...</option>';
-      tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione turma, mês e dia para visualizar os registros.</td></tr>';
+      tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center font-bold text-slate-500">Selecione turma, disciplina, mês e dia para visualizar os registros.</td></tr>';
       
-      if (!mesSelecionado) {
-        statusInfo.innerText = "Por favor, selecione um mês.";
+      if (!mesSelecionado || !turmaSelecionada || !discSelecionada) {
+        statusInfo.innerText = "Por favor, selecione turma, disciplina e mês.";
         return;
       }
 
       const datasDoMes = Array.from(new Set(
         (window.db.diario || [])
-          .filter(d => d.turma === turmaSelecionada && d.data && d.data.split('-')[1] === mesSelecionado)
+          .filter(d => d.turma === turmaSelecionada && (d.disciplina || window.db.config.disciplinas[0]) === discSelecionada && d.data && d.data.split('-')[1] === mesSelecionado)
           .map(d => d.data)
       )).sort().reverse();
 
       if (datasDoMes.length === 0) {
-        selectDias.innerHTML = '<option value="">Nenhuma aula para esta turma neste mês</option>';
-        statusInfo.innerText = "Nenhum registro de aula encontrado para a turma e mês selecionados.";
+        selectDias.innerHTML = '<option value="">Nenhuma aula para esta turma/disciplina neste mês</option>';
+        statusInfo.innerText = "Nenhum registro de aula encontrado para os filtros selecionados.";
         return;
       }
 
-      statusInfo.innerText = `Encontrados ${datasDoMes.length} dias com aulas registradas para a turma ${turmaSelecionada}.`;
+      statusInfo.innerText = `Encontrados ${datasDoMes.length} dias de aula para ${turmaSelecionada} (${discSelecionada}).`;
 
       datasDoMes.forEach(dataStr => {
         const [ano, mes, dia] = dataStr.split('-');
@@ -977,6 +1128,7 @@
 
     function filtrarHistoricoPorData() {
       const turmaSelecionada = document.getElementById('filtro-consulta-turma').value;
+      const discSelecionada = document.getElementById('filtro-consulta-disc').value;
       const dataSelecionada = document.getElementById('filtro-dia-historico').value;
       const tbody = document.querySelector('#sec-historico #tb-diario-body');
       const statusInfo = document.getElementById('status-filtro-data');
@@ -984,17 +1136,17 @@
 
       if (!dataSelecionada) {
         statusInfo.innerText = "Selecione um dia na lista suspensa.";
-        tbody.innerHTML = '<tr><td colspan="8" class="p-6 text-center font-bold text-slate-500">Selecione uma data para visualizar o histórico.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="9" class="p-6 text-center font-bold text-slate-500">Selecione uma data para visualizar o histórico.</td></tr>';
         return;
       }
 
       const dataFormatada = dataSelecionada.split('-').reverse().join('/');
-      statusInfo.innerHTML = `<span class="text-emerald-700 font-black"><i class="fa-solid fa-calendar-check"></i> Exibindo registros da turma ${turmaSelecionada} em ${dataFormatada}</span>`;
+      statusInfo.innerHTML = `<span class="text-emerald-700 font-black"><i class="fa-solid fa-calendar-check"></i> Exibindo registros de ${turmaSelecionada} - ${discSelecionada} em ${dataFormatada}</span>`;
 
-      const registrosDoDia = (window.db.diario || []).filter(d => d.data === dataSelecionada && d.turma === turmaSelecionada);
+      const registrosDoDia = (window.db.diario || []).filter(d => d.data === dataSelecionada && d.turma === turmaSelecionada && (d.disciplina || window.db.config.disciplinas[0]) === discSelecionada);
 
       if (registrosDoDia.length === 0) {
-        tbody.innerHTML = `<tr><td colspan="8" class="p-6 text-center font-bold text-amber-900 bg-amber-50 rounded">Nenhum registro encontrado para esta data.</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="9" class="p-6 text-center font-bold text-amber-900 bg-amber-50 rounded">Nenhum registro encontrado para esta data.</td></tr>`;
         return;
       }
 
@@ -1002,6 +1154,7 @@
         tbody.innerHTML += `
           <tr class="border-b hover:bg-slate-100 font-semibold">
             <td class="p-2.5 border font-bold text-slate-900">${d.turma}</td>
+            <td class="p-2.5 border font-bold text-amber-700">${d.disciplina || 'Disciplina 1'}</td>
             <td class="p-2.5 border font-bold text-slate-950">${d.alunoNome}</td>
             <td class="p-2.5 border"><span class="px-2 py-0.5 rounded text-xs font-black ${d.presenca === 'Presente' ? 'bg-emerald-200 text-emerald-900' : 'bg-red-200 text-red-900'}">${d.presenca}</span></td>
             <td class="p-2.5 border">${d.participacao}</td>
@@ -1024,7 +1177,7 @@
       tbody.innerHTML = '';
 
       let lista = window.db.alunos || [];
-      if (filtroTurma !== 'TODAS') lista = lista.filter(a => a.turma === filtroTurma);
+      if (filtroTurma && filtroTurma !== 'TODAS') lista = lista.filter(a => a.turma === filtroTurma);
       if (filtroStatus !== 'TODOS') lista = lista.filter(a => (a.status || 'Ativo') === filtroStatus);
 
       if(lista.length === 0) {
@@ -1100,12 +1253,13 @@
       document.getElementById('aluno-id').value = '';
     }
 
-    // 2. REGISTRO EM BLOCO (TEMA E OBS OBRIGATÓRIOS)
+    // 2. REGISTRO EM BLOCO
     function carregarChamadaBloco() {
       const turma = document.getElementById('diario-bloco-turma').value;
       const tbody = document.getElementById('tb-chamada-bloco-body');
       tbody.innerHTML = '';
 
+      if (!turma) return;
       const alunosAtivos = (window.db.alunos || []).filter(a => a.turma === turma && (a.status || 'Ativo') === 'Ativo');
 
       if (alunosAtivos.length === 0) {
@@ -1185,6 +1339,7 @@
 
       const dataAula = document.getElementById('diario-bloco-data').value;
       const turma = document.getElementById('diario-bloco-turma').value;
+      const disciplina = document.getElementById('diario-bloco-disciplina').value;
       const temaAula = document.getElementById('diario-bloco-tema').value;
 
       if (!dataAula) return alert('Selecione uma data para a aula!');
@@ -1211,6 +1366,7 @@
           id: 'diario_' + Date.now().toString() + '_' + alunoId,
           data: dataAula,
           turma: turma,
+          disciplina: disciplina,
           tema: temaAula,
           alunoId: alunoId,
           alunoNome: alunoNome,
@@ -1224,7 +1380,7 @@
         await window.salvarDiarioBD(registro);
         salvos++;
       }
-      alert(`Chamada gravada com sucesso para os ${salvos} alunos da turma!`);
+      alert(`Chamada de ${disciplina} gravada com sucesso para os ${salvos} alunos da turma!`);
       document.getElementById('diario-bloco-tema').value = '';
       carregarChamadaBloco();
       atualizarDiasDoMes();
@@ -1262,6 +1418,7 @@
     // 4. RELATÓRIO INDIVIDUAL
     function gerarRelatorioIndividual() {
       const alunoId = document.getElementById('rel-ind-aluno').value;
+      const disciplina = document.getElementById('rel-ind-disc').value;
       const mes = document.getElementById('rel-ind-mes').value;
       const ano = document.getElementById('rel-ind-ano').value;
 
@@ -1270,11 +1427,16 @@
 
       const statusTag = (aluno.status || 'Ativo') === 'Inativo' ? ' (INATIVO)' : '';
       document.getElementById('ind-out-nome').innerText = aluno.nome + statusTag;
-      document.getElementById('ind-out-periodo').innerText = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
+      
+      const descDisc = disciplina === 'TODAS' ? 'Todas as Disciplinas' : disciplina;
+      const descPeriodo = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
+      document.getElementById('ind-out-periodo').innerText = `${descDisc} | ${descPeriodo}`;
 
       const regs = (window.db.diario || []).filter(d => {
         if(d.alunoId !== alunoId) return false;
         if(!d.data) return false;
+        const dDisc = d.disciplina || window.db.config.disciplinas[0];
+        if(disciplina !== 'TODAS' && dDisc !== disciplina) return false;
         const [dAno, dMes] = d.data.split('-');
         if(dAno !== ano) return false;
         if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
@@ -1307,14 +1469,18 @@
     // 5. RELATÓRIO DA TURMA
     function gerarRelatorioTurma() {
       const turma = document.getElementById('rel-turma-select').value;
+      const disciplina = document.getElementById('rel-turma-disc').value;
       const mes = document.getElementById('rel-turma-mes').value;
       const ano = document.getElementById('rel-turma-ano').value;
 
-      document.getElementById('turma-out-nome').innerText = turma;
+      const descDisc = disciplina === 'TODAS' ? 'Todas as Disciplinas' : disciplina;
+      document.getElementById('turma-out-nome').innerText = `${turma} - ${descDisc}`;
       document.getElementById('turma-out-periodo').innerText = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
 
       const regs = (window.db.diario || []).filter(d => {
         if(d.turma !== turma) return false;
+        const dDisc = d.disciplina || window.db.config.disciplinas[0];
+        if(disciplina !== 'TODAS' && dDisc !== disciplina) return false;
         if(!d.data) return false;
         const [dAno, dMes] = d.data.split('-');
         if(dAno !== ano) return false;
@@ -1339,15 +1505,23 @@
     // 6. FREQUÊNCIA DA SECRETARIA
     function gerarRelatorioSecretaria() {
       const alunoId = document.getElementById('sec-aluno-select').value;
+      const disciplina = document.getElementById('sec-disc-select').value;
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
       if(!aluno) return;
 
       document.getElementById('sec-out-nome').innerText = aluno.nome;
       document.getElementById('sec-out-matricula').innerText = aluno.matricula;
       document.getElementById('sec-out-turma').innerText = aluno.turma;
+      document.getElementById('sec-out-disc').innerText = disciplina === 'TODAS' ? 'Todas' : disciplina;
       document.getElementById('sec-out-status').innerText = aluno.status || 'Ativo';
 
-      const regs = (window.db.diario || []).filter(d => d.alunoId === alunoId).sort((a,b) => new Date(a.data) - new Date(b.data));
+      const regs = (window.db.diario || []).filter(d => {
+        if (d.alunoId !== alunoId) return false;
+        const dDisc = d.disciplina || window.db.config.disciplinas[0];
+        if (disciplina !== 'TODAS' && dDisc !== disciplina) return false;
+        return true;
+      }).sort((a,b) => new Date(a.data) - new Date(b.data));
+
       const tbody = document.getElementById('sec-out-tb');
       tbody.innerHTML = '';
 
@@ -1362,7 +1536,7 @@
       document.getElementById('sec-sum-taxa').innerText = taxa.toFixed(2).replace('.', ',') + '%';
 
       if(regs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="3" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado para este estudante.</td></tr>';
+        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado para este estudante na disciplina selecionada.</td></tr>';
         return;
       }
 
@@ -1370,6 +1544,7 @@
         tbody.innerHTML += `
           <tr class="border-b font-semibold">
             <td class="p-2 border font-bold">${r.data ? r.data.split('-').reverse().join('/') : '-'}</td>
+            <td class="p-2 border font-bold text-amber-700">${r.disciplina || 'Disciplina 1'}</td>
             <td class="p-2 border font-bold ${r.presenca === 'Presente' ? 'text-emerald-700' : 'text-red-600'}">${r.presenca}</td>
             <td class="p-2 border text-xs">${r.obs || '-'}</td>
           </tr>
