@@ -66,7 +66,7 @@
         </div>
         <div>
           <h1 class="text-2xl font-black tracking-wide text-amber-400">ACOMPANHAMENTO PEDAGÓGICO</h1>
-          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider" id="header-professor-sub">Gestão Dinâmica de Turnos, Turmas e Disciplinas</p>
+          <p class="text-xs text-slate-300 font-semibold uppercase tracking-wider">Gestão Dinâmica de Turnos, Turmas e Disciplinas</p>
         </div>
       </div>
       
@@ -90,8 +90,8 @@
     <!-- Navegação por Abas -->
     <nav class="bg-slate-950 border-t border-slate-800">
       <div class="max-w-7xl mx-auto px-4 flex flex-wrap gap-1">
-        <button onclick="switchTab('config')" id="tab-config" class="nav-btn active px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-gears text-amber-400 text-base"></i> Configurações Escolares
+        <button onclick="switchTab('config')" id="tab-config" class="nav-btn active px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2 admin-only">
+          <i class="fa-solid fa-gears text-amber-400 text-base"></i> Configurações
         </button>
         <button onclick="switchTab('alunos')" id="tab-alunos" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-users text-amber-400 text-base"></i> Cadastro de Alunos
@@ -131,25 +131,19 @@
       </div>
     </div>
 
-    <!-- 0. CONFIGURAÇÕES ESCOLARES (PROFESSOR, TURMAS E DISCIPLINAS) -->
-    <section id="sec-config" class="space-y-6">
+    <!-- 0. CONFIGURAÇÕES ESCOLARES (ADMIN ONLY) -->
+    <section id="sec-config" class="space-y-6 admin-only">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-sliders text-amber-600"></i> Configurações Gerais do Sistema
         </h2>
-        <p class="text-xs text-slate-600 mb-6">Cadastre aqui o professor responsável, as turmas e as disciplinas da escola. Todo o sistema se atualizará automaticamente com estes dados.</p>
+        <p class="text-xs text-slate-600 mb-6">Cadastre aqui o professor responsável, as turmas e as disciplinas da escola. Todo o sistema se atualizará automaticamente.</p>
 
         <form id="form-config" onsubmit="salvarConfiguracoes(event)" class="grid grid-cols-1 md:grid-cols-2 gap-6">
           <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
             <label class="block text-sm font-bold text-slate-900 mb-1">Nome do(a) Professor(a) Responsável:</label>
             <input type="text" id="config-professor" placeholder="Ex: Prof. Ricardo Wagner" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 bg-white">
-            <p class="text-xs text-slate-500 mt-1">Aparecerá nos relatórios oficiais e PDFs exportados.</p>
-          </div>
-
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
-            <h3 class="text-sm font-black text-slate-900 mb-2"><i class="fa-solid fa-image text-amber-600"></i> Logotipo Escolar para PDF:</h3>
-            <input type="file" id="logo-input" accept="image/*" onchange="carregarLogo(event)" class="text-xs file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-amber-400 hover:file:bg-slate-800 cursor-pointer">
-            <button type="button" onclick="removerLogo()" class="mt-2 px-2.5 py-1 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i> Remover Logotipo</button>
+            <p class="text-xs text-slate-500 mt-1">Aparecerá nas assinaturas dos relatórios oficiais e PDFs.</p>
           </div>
 
           <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
@@ -157,12 +151,12 @@
             <input type="text" id="config-turmas" placeholder="Ex: Matutino, Vespertino" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 bg-white">
           </div>
 
-          <div class="bg-slate-50 p-4 rounded-lg border border-slate-300">
+          <div class="bg-slate-50 p-4 rounded-lg border border-slate-300 md:col-span-2">
             <label class="block text-sm font-bold text-slate-900 mb-1">Disciplinas Lecionadas (separadas por vírgula):</label>
             <input type="text" id="config-disciplinas" placeholder="Ex: Disciplina 1, Disciplina 2" required class="w-full border-2 border-slate-400 rounded-lg p-2 font-semibold text-slate-900 bg-white">
           </div>
 
-          <div class="md:col-span-2 admin-only">
+          <div class="md:col-span-2">
             <button type="submit" class="btn-contrast py-3 px-6 rounded-lg flex items-center justify-center gap-2 w-full">
               <i class="fa-solid fa-floppy-disk"></i> Salvar Configurações no Firebase
             </button>
@@ -173,6 +167,17 @@
 
     <!-- 1. CADASTRO DE ALUNOS -->
     <section id="sec-alunos" class="space-y-6 hidden">
+      <div class="admin-only bg-white rounded-xl shadow-md border-2 border-slate-300 p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
+        <div>
+          <h3 class="text-sm font-black text-slate-900"><i class="fa-solid fa-image text-amber-600"></i> Logotipo Escolar para Relatórios PDF:</h3>
+          <p class="text-xs text-slate-500">Insira a imagem que aparecerá no cabeçalho de todos os PDFs exportados.</p>
+        </div>
+        <div class="flex items-center gap-2">
+          <input type="file" id="logo-input" accept="image/*" onchange="carregarLogo(event)" class="text-xs file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-amber-400 hover:file:bg-slate-800 cursor-pointer">
+          <button onclick="removerLogo()" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
+        </div>
+      </div>
+
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 admin-only">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-user-plus text-amber-600"></i> Cadastrar / Editar Aluno
@@ -483,7 +488,7 @@
             <img id="img-logo-relatorio" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
-          <p class="text-sm font-bold text-slate-600" id="print-prof-ind">Acompanhamento Pedagógico</p>
+          <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
@@ -570,6 +575,12 @@
             </table>
           </div>
         </div>
+
+        <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
+          <div class="w-72">
+            <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor-ind">Professor(a)</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -628,7 +639,7 @@
             <img id="img-logo-turma" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">ACOMPANHAMENTO COLETIVO DA TURMA</h1>
-          <p class="text-sm font-bold text-slate-600" id="print-prof-turma">Relatório Consolidado</p>
+          <p class="text-sm font-bold text-slate-600">Relatório Consolidado de Frequência e Rendimento</p>
         </div>
 
         <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
@@ -642,7 +653,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
           <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
             <div class="bg-slate-900 text-white font-black p-3 text-center">INDICADORES DA TURMA</div>
             <table class="w-full font-bold">
@@ -675,6 +686,12 @@
             </table>
           </div>
         </div>
+
+        <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
+          <div class="w-72">
+            <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor-turma">Professor(a)</p>
+          </div>
+        </div>
       </div>
     </section>
 
@@ -689,7 +706,11 @@
             <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
           </button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+          <div>
+            <label class="block text-sm font-bold text-slate-900 mb-1">Buscar Aluno(a) por Nome:</label>
+            <input type="text" id="sec-busca-aluno" oninput="filtrarSelectAlunosSecretaria()" placeholder="Digite para filtrar..." class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-white text-slate-900">
+          </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
             <select id="sec-aluno-select" onchange="gerarRelatorioSecretaria()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
@@ -709,7 +730,7 @@
             <img id="img-logo-secretaria" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 uppercase">DECLARAÇÃO DE FREQUÊNCIA ESCOLAR</h1>
-          <p class="text-sm font-bold text-slate-600" id="print-prof-sec">Documento Oficial de Assiduidade</p>
+          <p class="text-sm font-bold text-slate-600">Documento Oficial de Assiduidade</p>
         </div>
 
         <div class="bg-slate-100 p-4 rounded-lg border-2 border-slate-300 mb-6 font-bold space-y-1">
@@ -752,7 +773,7 @@
 
         <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center grid grid-cols-2 gap-8">
           <div>
-            <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor">Professor(a)</p>
+            <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor-sec">Professor(a)</p>
           </div>
           <div>
             <p class="border-t border-slate-900 pt-1 font-bold text-sm">Secretaria Escolar</p>
@@ -811,7 +832,6 @@
       }
     }
 
-    // Listener de Configurações
     onSnapshot(doc(dbFirestore, "sistema", "configuracoes"), (docSnap) => {
       if (docSnap.exists()) {
         const data = docSnap.data();
@@ -824,7 +844,6 @@
         document.getElementById('config-turmas').value = window.db.config.turmas.join(', ');
         document.getElementById('config-disciplinas').value = window.db.config.disciplinas.join(', ');
       } else {
-        // Padrão inicial no Firestore se não existir
         setDoc(doc(dbFirestore, "sistema", "configuracoes"), {
           professor: "Prof. Ricardo Wagner",
           turmas: "Matutino, Vespertino",
@@ -847,7 +866,7 @@
       window.renderAlunos();
       if (!document.getElementById('sec-diario').classList.contains('hidden')) window.carregarChamadaBloco();
       if (!document.getElementById('sec-individual').classList.contains('hidden')) window.carregarSelectAlunos('rel-ind-aluno', window.gerarRelatorioIndividual);
-      if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.carregarSelectAlunos('sec-aluno-select', window.gerarRelatorioSecretaria);
+      if (!document.getElementById('sec-secretaria').classList.contains('hidden')) window.carregarSelectAlunosSecretaria();
     });
 
     onSnapshot(collection(dbFirestore, "diario"), (snapshot) => {
@@ -909,6 +928,11 @@
         document.getElementById('read-only-banner').classList.remove('hidden');
         document.getElementById('label-mode').innerText = "Modo Leitura (Entrar como Admin)";
         document.getElementById('icon-mode').className = "fa-solid fa-lock";
+        
+        // Se estiver na aba config ao sair do admin, retorna para alunos
+        if (!document.getElementById('sec-config').classList.contains('hidden')) {
+          switchTab('alunos');
+        }
         renderAlunos();
         carregarChamadaBloco();
         renderHistoricoGeral();
@@ -918,13 +942,10 @@
 
     function atualizarInterfacesDinamicas() {
       const cfg = window.db.config;
-      document.getElementById('header-professor-sub').innerText = `Professor(a): ${cfg.professor}`;
-      document.getElementById('print-prof-ind').innerText = `Professor(a): ${cfg.professor}`;
-      document.getElementById('print-prof-turma').innerText = `Professor(a): ${cfg.professor}`;
-      document.getElementById('print-prof-sec').innerText = `Professor(a): ${cfg.professor}`;
-      document.getElementById('assinatura-professor').innerText = cfg.professor;
+      document.getElementById('assinatura-professor-ind').innerText = cfg.professor;
+      document.getElementById('assinatura-professor-turma').innerText = cfg.professor;
+      document.getElementById('assinatura-professor-sec').innerText = cfg.professor;
 
-      // Preencher selects de Turmas
       document.querySelectorAll('.dynamic-turmas-select').forEach(sel => {
         const valAtual = sel.value;
         sel.innerHTML = '';
@@ -943,7 +964,6 @@
         if (valAtual) sel.value = valAtual;
       });
 
-      // Preencher selects de Disciplinas
       document.querySelectorAll('.dynamic-disciplinas-select').forEach(sel => {
         const valAtual = sel.value;
         sel.innerHTML = '';
@@ -1017,22 +1037,32 @@
     }
 
     function switchTab(tabKey) {
+      // Se tentar acessar config sem ser admin
+      if (tabKey === 'config' && !isAdmin) {
+        alert("Acesso restrito a administradores!");
+        return;
+      }
+
       ['config', 'alunos', 'diario', 'historico-geral', 'historico', 'individual', 'turma', 'secretaria'].forEach(key => {
-        document.getElementById(`sec-${key}`).classList.add('hidden');
-        document.getElementById(`tab-${key}`).classList.remove('active');
+        const sec = document.getElementById(`sec-${key}`);
+        const tab = document.getElementById(`tab-${key}`);
+        if(sec) sec.classList.add('hidden');
+        if(tab) tab.classList.remove('active');
       });
-      document.getElementById(`sec-${tabKey}`).classList.remove('hidden');
-      document.getElementById(`tab-${tabKey}`).classList.add('active');
+      
+      const targetSec = document.getElementById(`sec-${tabKey}`);
+      const targetTab = document.getElementById(`tab-${tabKey}`);
+      if(targetSec) targetSec.classList.remove('hidden');
+      if(targetTab) targetTab.classList.add('active');
 
       if(tabKey === 'diario') carregarChamadaBloco();
       if(tabKey === 'historico-geral') renderHistoricoGeral();
       if(tabKey === 'historico') atualizarDiasDoMes();
       if(tabKey === 'individual') carregarSelectAlunos('rel-ind-aluno', gerarRelatorioIndividual);
       if(tabKey === 'turma') gerarRelatorioTurma();
-      if(tabKey === 'secretaria') carregarSelectAlunos('sec-aluno-select', gerarRelatorioSecretaria);
+      if(tabKey === 'secretaria') carregarSelectAlunosSecretaria();
     }
 
-    // --- RENDERIZAR HISTÓRICO GERAL DE AULAS ---
     function renderHistoricoGeral() {
       const tbody = document.getElementById('tb-historico-geral-body');
       const filtroTurma = document.getElementById('filtro-hist-geral-turma').value;
@@ -1085,7 +1115,6 @@
       });
     }
 
-    // --- CONSULTA POR DATA COM FILTROS ---
     function atualizarDiasDoMes() {
       const turmaSelecionada = document.getElementById('filtro-consulta-turma').value;
       const discSelecionada = document.getElementById('filtro-consulta-disc').value;
@@ -1169,7 +1198,6 @@
       });
     }
 
-    // 1. ALUNOS
     function renderAlunos() {
       const tbody = document.getElementById('tb-alunos-body');
       const filtroTurma = document.getElementById('filtro-turma-alunos').value;
@@ -1253,7 +1281,6 @@
       document.getElementById('aluno-id').value = '';
     }
 
-    // 2. REGISTRO EM BLOCO
     function carregarChamadaBloco() {
       const turma = document.getElementById('diario-bloco-turma').value;
       const tbody = document.getElementById('tb-chamada-bloco-body');
@@ -1415,7 +1442,34 @@
       if(callback) callback();
     }
 
-    // 4. RELATÓRIO INDIVIDUAL
+    function carregarSelectAlunosSecretaria() {
+      const termoBusca = (document.getElementById('sec-busca-aluno').value || '').toLowerCase();
+      const select = document.getElementById('sec-aluno-select');
+      select.innerHTML = '';
+
+      const alunosFiltrados = (window.db.alunos || []).filter(a => a.nome.toLowerCase().includes(termoBusca));
+
+      if(alunosFiltrados.length === 0) {
+        select.innerHTML = '<option value="">Nenhum aluno encontrado</option>';
+        document.getElementById('sec-out-nome').innerText = '-';
+        document.getElementById('sec-out-matricula').innerText = '-';
+        document.getElementById('sec-out-turma').innerText = '-';
+        document.getElementById('sec-out-status').innerText = '-';
+        document.getElementById('sec-out-tb').innerHTML = '';
+        return;
+      }
+
+      alunosFiltrados.forEach(a => {
+        const isAtivo = (a.status || 'Ativo') === 'Ativo';
+        select.innerHTML += `<option value="${a.id}">${a.nome} - Matrícula: ${a.matricula} (${a.turma}) [${isAtivo ? 'ATIVO' : 'INATIVO'}]</option>`;
+      });
+      gerarRelatorioSecretaria();
+    }
+
+    function filtrarSelectAlunosSecretaria() {
+      carregarSelectAlunosSecretaria();
+    }
+
     function gerarRelatorioIndividual() {
       const alunoId = document.getElementById('rel-ind-aluno').value;
       const disciplina = document.getElementById('rel-ind-disc').value;
@@ -1466,7 +1520,6 @@
       document.getElementById('ind-out-comp-nsuficiente').innerText = calcPct('compreensao', 'Não suficiente');
     }
 
-    // 5. RELATÓRIO DA TURMA
     function gerarRelatorioTurma() {
       const turma = document.getElementById('rel-turma-select').value;
       const disciplina = document.getElementById('rel-turma-disc').value;
@@ -1502,7 +1555,6 @@
       document.getElementById('turma-out-comp-nsuficiente').innerText = calcPct('Não suficiente');
     }
 
-    // 6. FREQUÊNCIA DA SECRETARIA
     function gerarRelatorioSecretaria() {
       const alunoId = document.getElementById('sec-aluno-select').value;
       const disciplina = document.getElementById('sec-disc-select').value;
