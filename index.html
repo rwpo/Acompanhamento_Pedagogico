@@ -52,7 +52,8 @@
       .no-print { display: none !important; }
       body { background: white; color: black; }
       .print-area { border: none !important; box-shadow: none !important; }
-      .page-break { page-break-before: always; break-before: page; }
+      .page-break { page-break-before: always; break-before: page; break-inside: avoid; page-break-inside: avoid; }
+      .print-area > div { break-inside: avoid; page-break-inside: avoid; }
     }
   </style>
 </head>
@@ -97,7 +98,7 @@
         <button onclick="switchTab('alunos')" id="tab-alunos" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-users text-amber-400 text-base"></i> Cadastro de Alunos
         </button>
-        <button onclick="switchTab('diario')" id="tab-diario" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
+        <button onclick="switchTab('diario')" id="tab-diario" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2 admin-only">
           <i class="fa-solid fa-list-check text-amber-400 text-base"></i> Registro Diário (Bloco)
         </button>
         <button onclick="switchTab('historico-geral')" id="tab-historico-geral" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
@@ -267,8 +268,8 @@
       </div>
     </section>
 
-    <!-- 2. REGISTRO DIÁRIO EM BLOCO -->
-    <section id="sec-diario" class="space-y-6 hidden">
+    <!-- 2. REGISTRO DIÁRIO EM BLOCO (ADMIN ONLY) -->
+    <section id="sec-diario" class="space-y-6 hidden admin-only">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-list-check text-amber-600"></i> Registro Diário de Aula em Bloco
@@ -314,7 +315,7 @@
             </table>
           </div>
 
-          <button type="submit" class="btn-warning-contrast w-full py-3.5 rounded-lg text-base font-black flex items-center justify-center gap-2 admin-only">
+          <button type="submit" class="btn-warning-contrast w-full py-3.5 rounded-lg text-base font-black flex items-center justify-center gap-2">
             <i class="fa-solid fa-cloud-arrow-up text-xl"></i> Salvar Registro da Turma Toda no Firebase
           </button>
         </form>
@@ -454,8 +455,8 @@
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
-            <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro-especial">
-              <!-- Dinâmico com Sintético e Analítico -->
+            <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro">
+              <!-- Dinâmico (Apenas disciplinas individuais) -->
             </select>
           </div>
           <div>
@@ -489,7 +490,7 @@
       </div>
 
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-10">
-        <!-- Container onde o relatório sintético ou analítico de cada disciplina será renderizado -->
+        <!-- Container onde o relatório resumido de cada disciplina será renderizado -->
         <div id="container-relatorios-individuais">
           <!-- O conteúdo é injetado dinamicamente -->
         </div>
@@ -574,14 +575,14 @@
                 <td id="turma-out-aulas" class="p-4 text-right text-xl">0</td>
               </tr>
               <tr>
-                <td class="p-4 bg-slate-900 text-white border-r">Frequência da Turma:</td>
+                <td class="p-4 bg-slate-900 text-white border-r">Frequência Média da Turma:</td>
                 <td id="turma-out-freq" class="p-4 text-right text-2xl font-black text-amber-400 bg-slate-900">0,00%</td>
               </tr>
             </table>
           </div>
 
           <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center">NÍVEL DE COMPREENSÃO DA TURMA</div>
+            <div class="bg-slate-900 text-white font-black p-3 text-center">NÍVEL DE COMPREENSÃO GERAL</div>
             <table class="w-full font-bold">
               <tr class="border-b">
                 <td class="p-3 bg-slate-100 border-r">Boa:</td>
@@ -618,7 +619,7 @@
             <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
           </button>
         </div>
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Buscar Aluno(a) por Nome:</label>
             <input type="text" id="sec-busca-aluno" oninput="filtrarSelectAlunosSecretaria()" placeholder="Digite para filtrar..." class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-white text-slate-900">
@@ -626,12 +627,6 @@
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Selecione o Aluno(a):</label>
             <select id="sec-aluno-select" onchange="gerarRelatorioSecretaria()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
-          </div>
-          <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
-            <select id="sec-disc-select" onchange="gerarRelatorioSecretaria()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro">
-              <!-- Dinâmico -->
-            </select>
           </div>
         </div>
       </div>
@@ -642,50 +637,16 @@
             <img id="img-logo-secretaria" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 uppercase">DECLARAÇÃO DE FREQUÊNCIA ESCOLAR</h1>
-          <p class="text-sm font-bold text-slate-600">Documento Oficial de Assiduidade</p>
+          <p class="text-sm font-bold text-slate-600">Documento Oficial de Assiduidade - Consolidado por Disciplina</p>
         </div>
 
         <div class="bg-slate-100 p-4 rounded-lg border-2 border-slate-300 mb-6 font-bold space-y-1">
           <p><span class="text-slate-500 uppercase text-xs">Estudante:</span> <span id="sec-out-nome" class="text-lg text-slate-900">-</span></p>
-          <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Disciplina:</span> <span id="sec-out-disc" class="text-amber-700">Todas</span> | <span class="text-slate-500 uppercase text-xs">Situação:</span> <span id="sec-out-status" class="text-slate-900">-</span></p>
+          <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Situação:</span> <span id="sec-out-status" class="text-slate-900">-</span></p>
         </div>
 
-        <!-- Bloco de Resumo Estatístico Atualizado -->
-        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
-          <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-            <p class="text-xs text-slate-500 uppercase">Total Aulas</p>
-            <p id="sec-sum-aulas" class="text-lg text-slate-900">0</p>
-          </div>
-          <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-            <p class="text-xs text-emerald-700 uppercase">Presenças</p>
-            <p id="sec-sum-presencas" class="text-lg text-emerald-800">0</p>
-          </div>
-          <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-            <p class="text-xs text-red-600 uppercase">F. Sem Justif.</p>
-            <p id="sec-sum-faltas-sem" class="text-lg text-red-700">0</p>
-          </div>
-          <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-            <p class="text-xs text-blue-600 uppercase">F. Justificadas</p>
-            <p id="sec-sum-faltas-just" class="text-lg text-blue-700">0</p>
-          </div>
-          <div class="bg-slate-900 text-white p-2.5">
-            <p class="text-xs text-amber-400 uppercase">Frequência</p>
-            <p id="sec-sum-taxa" class="text-lg text-amber-300">0,00%</p>
-          </div>
-        </div>
-
-        <h3 class="font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-1">Histórico Completo de Assiduidade</h3>
-        <table class="w-full text-left border-collapse border-2 border-slate-400 text-sm mb-8">
-          <thead>
-            <tr class="bg-slate-900 text-white">
-              <th class="p-2 border">Data da Aula</th>
-              <th class="p-2 border">Disciplina</th>
-              <th class="p-2 border">Status de Presença</th>
-              <th class="p-2 border">Observações Pedagógicas / Justificativa</th>
-            </tr>
-          </thead>
-          <tbody id="sec-out-tb"></tbody>
-        </table>
+        <!-- Conteúdo injetado dinamicamente agrupado por disciplina -->
+        <div id="sec-out-conteudo" class="space-y-6"></div>
 
         <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center grid grid-cols-2 gap-8">
           <div>
@@ -845,11 +806,10 @@
         document.getElementById('label-mode').innerText = "Modo Leitura (Entrar como Admin)";
         document.getElementById('icon-mode').className = "fa-solid fa-lock";
         
-        if (!document.getElementById('sec-config').classList.contains('hidden')) {
+        if (!document.getElementById('sec-config').classList.contains('hidden') || !document.getElementById('sec-diario').classList.contains('hidden')) {
           switchTab('alunos');
         }
         renderAlunos();
-        carregarChamadaBloco();
         renderHistoricoGeral();
         atualizarDiasDoMes();
       }
@@ -890,18 +850,6 @@
       document.querySelectorAll('.dynamic-disciplinas-filtro').forEach(sel => {
         const valAtual = sel.value;
         sel.innerHTML = '<option value="TODAS">Todas as Disciplinas</option>';
-        cfg.disciplinas.forEach(d => {
-          sel.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-        if (valAtual) sel.value = valAtual;
-      });
-
-      document.querySelectorAll('.dynamic-disciplinas-filtro-especial').forEach(sel => {
-        const valAtual = sel.value;
-        sel.innerHTML = `
-          <option value="TODAS_SINTETICO">Todas as disciplinas sintético</option>
-          <option value="TODAS_ANALITICO">Todas as disciplinas analítico</option>
-        `;
         cfg.disciplinas.forEach(d => {
           sel.innerHTML += `<option value="${d}">${d}</option>`;
         });
@@ -964,7 +912,7 @@
     }
 
     function switchTab(tabKey) {
-      if (tabKey === 'config' && !isAdmin) {
+      if ((tabKey === 'config' || tabKey === 'diario') && !isAdmin) {
         alert("Acesso restrito a administradores!");
         return;
       }
@@ -1410,7 +1358,7 @@
         document.getElementById('sec-out-matricula').innerText = '-';
         document.getElementById('sec-out-turma').innerText = '-';
         document.getElementById('sec-out-status').innerText = '-';
-        document.getElementById('sec-out-tb').innerHTML = '';
+        document.getElementById('sec-out-conteudo').innerHTML = '';
         return;
       }
 
@@ -1427,7 +1375,7 @@
 
     function gerarRelatorioIndividual() {
       const alunoId = document.getElementById('rel-ind-aluno').value;
-      const modoRelatorio = document.getElementById('rel-ind-disc').value;
+      const disciplina = document.getElementById('rel-ind-disc').value;
       const mes = document.getElementById('rel-ind-mes').value;
       const ano = document.getElementById('rel-ind-ano').value;
 
@@ -1437,11 +1385,9 @@
       const container = document.getElementById('container-relatorios-individuais');
       container.innerHTML = '';
 
-      const disciplinasAlvo = (modoRelatorio === 'TODAS_SINTETICO' || modoRelatorio === 'TODAS_ANALITICO') 
-        ? window.db.config.disciplinas 
-        : [modoRelatorio];
+      const disciplinasAlvo = (disciplina === 'TODAS') ? window.db.config.disciplinas : [disciplina];
 
-      disciplinasAlvo.forEach((disciplina, index) => {
+      disciplinasAlvo.forEach((disc, index) => {
         const statusTag = (aluno.status || 'Ativo') === 'Inativo' ? ' (INATIVO)' : '';
         const descPeriodo = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
 
@@ -1449,7 +1395,7 @@
           if(d.alunoId !== alunoId) return false;
           if(!d.data) return false;
           const dDisc = d.disciplina || window.db.config.disciplinas[0];
-          if(dDisc !== disciplina) return false;
+          if(dDisc !== disc) return false;
           const [dAno, dMes] = d.data.split('-');
           if(dAno !== ano) return false;
           if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
@@ -1464,7 +1410,6 @@
 
         const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
 
-        const isAnalitico = (modoRelatorio === 'TODAS_ANALITICO');
         const quebraPaginaClass = (index > 0) ? 'page-break pt-6' : '';
 
         const logoImgElement = document.getElementById('img-logo-relatorio');
@@ -1488,7 +1433,7 @@
               </div>
               <div>
                 <p class="text-xs text-slate-500 uppercase font-bold">Disciplina e Período:</p>
-                <p class="text-lg font-bold text-amber-600">${disciplina} | ${descPeriodo}</p>
+                <p class="text-lg font-bold text-amber-600">${disc} | ${descPeriodo}</p>
               </div>
             </div>
 
@@ -1544,45 +1489,7 @@
                 </table>
               </div>
             </div>
-        `;
 
-        if (isAnalitico) {
-          htmlBloco += `
-            <div class="mt-6">
-              <h3 class="font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-1 text-sm">Histórico Detalhado de Aulas - ${disciplina}</h3>
-              <table class="w-full text-left border-collapse border-2 border-slate-400 text-xs">
-                <thead>
-                  <tr class="bg-slate-900 text-white">
-                    <th class="p-2 border">Data</th>
-                    <th class="p-2 border">Presença</th>
-                    <th class="p-2 border">Participação</th>
-                    <th class="p-2 border">Atividades</th>
-                    <th class="p-2 border">Compreensão</th>
-                    <th class="p-2 border">Observação / Justificativa</th>
-                  </tr>
-                </thead>
-                <tbody>
-          `;
-          if (regs.length === 0) {
-            htmlBloco += `<tr><td colspan="6" class="p-3 text-center font-bold text-slate-500">Nenhum registro para esta disciplina.</td></tr>`;
-          } else {
-            regs.sort((a,b) => new Date(a.data) - new Date(b.data)).forEach(r => {
-              htmlBloco += `
-                <tr class="border-b font-semibold">
-                  <td class="p-2 border">${r.data ? r.data.split('-').reverse().join('/') : '-'}</td>
-                  <td class="p-2 border ${r.presenca === 'Presente' ? 'text-emerald-700' : 'text-red-600'}">${r.presenca}</td>
-                  <td class="p-2 border">${r.participacao}</td>
-                  <td class="p-2 border">${r.atividades}</td>
-                  <td class="p-2 border">${r.compreensao}</td>
-                  <td class="p-2 border">${r.obs || '-'}</td>
-                </tr>
-              `;
-            });
-          }
-          htmlBloco += `</tbody></table></div>`;
-        }
-
-        htmlBloco += `
             <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
               <div class="w-72">
                 <p class="border-t border-slate-900 pt-1 font-bold text-sm">${window.db.config.professor}</p>
@@ -1605,6 +1512,7 @@
       document.getElementById('turma-out-nome').innerText = `${turma} - ${descDisc}`;
       document.getElementById('turma-out-periodo').innerText = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
 
+      // Filtra registros do diário para a turma e disciplina selecionadas
       const regs = (window.db.diario || []).filter(d => {
         if(d.turma !== turma) return false;
         const dDisc = d.disciplina || window.db.config.disciplinas[0];
@@ -1616,14 +1524,17 @@
         return true;
       });
 
-      const totalAulas = regs.length;
+      // Conta o número exato de dias/aulas únicas ministradas (agrupando por data e disciplina)
+      const aulasUnicas = new Set(regs.map(r => `${r.data}_${r.disciplina || window.db.config.disciplinas[0]}`)).size;
+      
       const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
-      const freqTurma = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
+      const totalRegistros = regs.length;
+      const freqTurma = totalRegistros > 0 ? (totalPresencas / totalRegistros) * 100 : 0;
 
-      document.getElementById('turma-out-aulas').innerText = totalAulas;
+      document.getElementById('turma-out-aulas').innerText = aulasUnicas;
       document.getElementById('turma-out-freq').innerText = freqTurma.toFixed(2).replace('.', ',') + '%';
 
-      const calcPct = (val) => totalAulas > 0 ? ((regs.filter(r => r.compreensao === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+      const calcPct = (val) => totalRegistros > 0 ? ((regs.filter(r => r.compreensao === val).length / totalRegistros) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
 
       document.getElementById('turma-out-comp-boa').innerText = calcPct('Boa');
       document.getElementById('turma-out-comp-regular').innerText = calcPct('Regular');
@@ -1632,52 +1543,96 @@
 
     function gerarRelatorioSecretaria() {
       const alunoId = document.getElementById('sec-aluno-select').value;
-      const disciplina = document.getElementById('sec-disc-select').value;
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
       if(!aluno) return;
 
       document.getElementById('sec-out-nome').innerText = aluno.nome;
       document.getElementById('sec-out-matricula').innerText = aluno.matricula;
       document.getElementById('sec-out-turma').innerText = aluno.turma;
-      document.getElementById('sec-out-disc').innerText = disciplina === 'TODAS' ? 'Todas' : disciplina;
       document.getElementById('sec-out-status').innerText = aluno.status || 'Ativo';
 
-      const regs = (window.db.diario || []).filter(d => {
-        if (d.alunoId !== alunoId) return false;
-        const dDisc = d.disciplina || window.db.config.disciplinas[0];
-        if (disciplina !== 'TODAS' && dDisc !== disciplina) return false;
-        return true;
-      }).sort((a,b) => new Date(a.data) - new Date(b.data));
+      const containerConteudo = document.getElementById('sec-out-conteudo');
+      containerConteudo.innerHTML = '';
 
-      const tbody = document.getElementById('sec-out-tb');
-      tbody.innerHTML = '';
+      window.db.config.disciplinas.forEach((disc, index) => {
+        const regs = (window.db.diario || []).filter(d => {
+          if (d.alunoId !== alunoId) return false;
+          const dDisc = d.disciplina || window.db.config.disciplinas[0];
+          if (dDisc !== disc) return false;
+          return true;
+        }).sort((a,b) => new Date(a.data) - new Date(b.data));
 
-      const totalAulas = regs.length;
-      const presencas = regs.filter(r => r.presenca === 'Presente').length;
-      const faltasSem = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta sem justificativa').length;
-      const faltasJust = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta justificada').length;
-      const taxa = totalAulas > 0 ? (presencas / totalAulas) * 100 : 0;
+        const totalAulas = regs.length;
+        const presencas = regs.filter(r => r.presenca === 'Presente').length;
+        const faltasSem = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta sem justificativa').length;
+        const faltasJust = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta justificada').length;
+        const taxa = totalAulas > 0 ? (presencas / totalAulas) * 100 : 0;
 
-      document.getElementById('sec-sum-aulas').innerText = totalAulas;
-      document.getElementById('sec-sum-presencas').innerText = presencas;
-      document.getElementById('sec-sum-faltas-sem').innerText = faltasSem;
-      document.getElementById('sec-sum-faltas-just').innerText = faltasJust;
-      document.getElementById('sec-sum-taxa').innerText = taxa.toFixed(2).replace('.', ',') + '%';
+        const quebraClass = index > 0 ? 'page-break pt-4' : '';
 
-      if(regs.length === 0) {
-        tbody.innerHTML = '<tr><td colspan="4" class="p-4 text-center font-bold text-slate-500">Nenhum registro de aula localizado para este estudante na disciplina selecionada.</td></tr>';
-        return;
-      }
+        let blocoDisc = `
+          <div class="${quebraClass} border-2 border-slate-300 rounded-lg p-4 bg-white">
+            <h3 class="font-black text-amber-700 text-base mb-3 border-b-2 border-amber-500 pb-1 flex items-center justify-between">
+              <span><i class="fa-solid fa-book"></i> Disciplina: ${disc}</span>
+              <span class="text-xs text-slate-600">Assiduidade Geral</span>
+            </h3>
 
-      regs.forEach(r => {
-        tbody.innerHTML += `
-          <tr class="border-b font-semibold">
-            <td class="p-2 border font-bold">${r.data ? r.data.split('-').reverse().join('/') : '-'}</td>
-            <td class="p-2 border font-bold text-amber-700">${r.disciplina || 'Disciplina 1'}</td>
-            <td class="p-2 border font-bold ${r.presenca === 'Presente' ? 'text-emerald-700' : 'text-red-600'}">${r.presenca}</td>
-            <td class="p-2 border text-xs">${r.obs || '-'}</td>
-          </tr>
+            <!-- Resumo Estatístico por Disciplina -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
+              <div class="bg-slate-100 p-2 border-r border-slate-800">
+                <p class="text-xs text-slate-500 uppercase">Aulas</p>
+                <p class="text-base text-slate-900">${totalAulas}</p>
+              </div>
+              <div class="bg-slate-100 p-2 border-r border-slate-800">
+                <p class="text-xs text-emerald-700 uppercase">Presenças</p>
+                <p class="text-base text-emerald-800">${presencas}</p>
+              </div>
+              <div class="bg-slate-100 p-2 border-r border-slate-800">
+                <p class="text-xs text-red-600 uppercase">F. Sem Justif.</p>
+                <p class="text-base text-red-700">${faltasSem}</p>
+              </div>
+              <div class="bg-slate-100 p-2 border-r border-slate-800">
+                <p class="text-xs text-blue-600 uppercase">F. Justificadas</p>
+                <p class="text-base text-blue-700">${faltasJust}</p>
+              </div>
+              <div class="bg-slate-900 text-white p-2">
+                <p class="text-xs text-amber-400 uppercase">Taxa</p>
+                <p class="text-base text-amber-300">${taxa.toFixed(2).replace('.', ',')}%</p>
+              </div>
+            </div>
+
+            <table class="w-full text-left border-collapse border border-slate-300 text-xs">
+              <thead>
+                <tr class="bg-slate-900 text-white">
+                  <th class="p-2 border">Data da Aula</th>
+                  <th class="p-2 border">Status de Presença</th>
+                  <th class="p-2 border">Observações / Justificativa</th>
+                </tr>
+              </thead>
+              <tbody>
         `;
+
+        if (regs.length === 0) {
+          blocoDisc += `<tr><td colspan="3" class="p-3 text-center font-bold text-slate-500">Nenhum registro nesta disciplina.</td></tr>`;
+        } else {
+          regs.forEach(r => {
+            blocoDisc += `
+              <tr class="border-b font-semibold">
+                <td class="p-2 border">${r.data ? r.data.split('-').reverse().join('/') : '-'}</td>
+                <td class="p-2 border font-bold ${r.presenca === 'Presente' ? 'text-emerald-700' : 'text-red-600'}">${r.presenca}</td>
+                <td class="p-2 border">${r.obs || '-'}</td>
+              </tr>
+            `;
+          });
+        }
+
+        blocoDisc += `
+              </tbody>
+            </table>
+          </div>
+        `;
+
+        containerConteudo.innerHTML += blocoDisc;
       });
     }
 
