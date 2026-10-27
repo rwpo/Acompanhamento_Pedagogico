@@ -52,6 +52,7 @@
       .no-print { display: none !important; }
       body { background: white; color: black; }
       .print-area { border: none !important; box-shadow: none !important; }
+      .page-break { page-break-before: always; break-before: page; }
     }
   </style>
 </head>
@@ -453,8 +454,8 @@
           </div>
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
-            <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro">
-              <!-- Dinâmico -->
+            <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro-especial">
+              <!-- Dinâmico com Sintético e Analítico -->
             </select>
           </div>
           <div>
@@ -482,104 +483,10 @@
         </div>
       </div>
 
-      <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
-        <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
-          <div class="mb-3 flex justify-center">
-            <img id="img-logo-relatorio" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
-          </div>
-          <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
-          <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
-        </div>
-
-        <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
-          <div>
-            <p class="text-xs text-slate-500 uppercase font-bold">Nome do Aluno:</p>
-            <p id="ind-out-nome" class="text-xl font-black text-slate-900">-</p>
-          </div>
-          <div>
-            <p class="text-xs text-slate-500 uppercase font-bold">Disciplina e Período:</p>
-            <p id="ind-out-periodo" class="text-lg font-bold text-amber-600">-</p>
-          </div>
-        </div>
-
-        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">FREQUÊNCIA E AULAS</div>
-            <table class="w-full text-left font-bold border-collapse">
-              <tr class="border-b">
-                <td class="p-3 bg-slate-100 border-r">Total de aulas registradas:</td>
-                <td id="ind-out-aulas" class="p-3 text-right text-lg">0</td>
-              </tr>
-              <tr class="border-b">
-                <td class="p-3 bg-slate-100 border-r">Total de presenças:</td>
-                <td id="ind-out-presencas" class="p-3 text-right text-lg text-emerald-700">0</td>
-              </tr>
-              <tr>
-                <td class="p-3 bg-slate-900 text-white border-r">Taxa de Frequência:</td>
-                <td id="ind-out-taxa-freq" class="p-3 text-right text-xl font-black text-amber-500 bg-slate-900">0,00%</td>
-              </tr>
-            </table>
-          </div>
-
-          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">PARTICIPAÇÃO NA AULA</div>
-            <table class="w-full text-left font-bold border-collapse">
-              <tr class="border-b">
-                <td class="p-2.5 bg-slate-100 border-r">Ativa:</td>
-                <td id="ind-out-part-ativa" class="p-2.5 text-right">0,00%</td>
-              </tr>
-              <tr class="border-b">
-                <td class="p-2.5 bg-slate-100 border-r">Estimulada:</td>
-                <td id="ind-out-part-estimulada" class="p-2.5 text-right">0,00%</td>
-              </tr>
-              <tr>
-                <td class="p-2.5 bg-slate-100 border-r">Nenhuma:</td>
-                <td id="ind-out-part-nenhuma" class="p-2.5 text-right">0,00%</td>
-              </tr>
-            </table>
-          </div>
-
-          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">REALIZAÇÃO DAS ATIVIDADES</div>
-            <table class="w-full text-left font-bold border-collapse">
-              <tr class="border-b">
-                <td class="p-2.5 bg-slate-100 border-r">Autônomo:</td>
-                <td id="ind-out-ativ-autonomo" class="p-2.5 text-right">0,00%</td>
-              </tr>
-              <tr class="border-b">
-                <td class="p-2.5 bg-slate-100 border-r">Com ajuda:</td>
-                <td id="ind-out-ativ-ajuda" class="p-2.5 text-right">0,00%</td>
-              </tr>
-              <tr>
-                <td class="p-2.5 bg-slate-100 border-r">Não realiza:</td>
-                <td id="ind-out-ativ-nao" class="p-2.5 text-right">0,00%</td>
-              </tr>
-            </table>
-          </div>
-
-          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-            <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">COMPREENSÃO DO CONTEÚDO</div>
-            <table class="w-full text-left font-bold border-collapse">
-              <tr class="border-b">
-                <td class="p-2.5 bg-slate-100 border-r">Boa:</td>
-                <td id="ind-out-comp-boa" class="p-2.5 text-right">0,00%</td>
-              </tr>
-              <tr class="border-b">
-                <td class="p-2.5 bg-slate-100 border-r">Regular:</td>
-                <td id="ind-out-comp-regular" class="p-2.5 text-right">0,00%</td>
-              </tr>
-              <tr>
-                <td class="p-2.5 bg-slate-100 border-r">Não suficiente:</td>
-                <td id="ind-out-comp-nsuficiente" class="p-2.5 text-right">0,00%</td>
-              </tr>
-            </table>
-          </div>
-        </div>
-
-        <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
-          <div class="w-72">
-            <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor-ind">Professor(a)</p>
-          </div>
+      <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-10">
+        <!-- Container onde o relatório sintético ou analítico de cada disciplina será renderizado -->
+        <div id="container-relatorios-individuais">
+          <!-- O conteúdo é injetado dinamicamente -->
         </div>
       </div>
     </section>
@@ -981,6 +888,19 @@
         if (valAtual) sel.value = valAtual;
       });
 
+      // Seletor especial para o Relatório Individual (Sintético e Analítico)
+      document.querySelectorAll('.dynamic-disciplinas-filtro-especial').forEach(sel => {
+        const valAtual = sel.value;
+        sel.innerHTML = `
+          <option value="TODAS_SINTETICO">Todas as disciplinas sintético</option>
+          <option value="TODAS_ANALITICO">Todas as disciplinas analítico</option>
+        `;
+        cfg.disciplinas.forEach(d => {
+          sel.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+        if (valAtual) sel.value = valAtual;
+      });
+
       if (!document.getElementById('sec-diario').classList.contains('hidden')) carregarChamadaBloco();
       renderAlunos();
     }
@@ -1352,6 +1272,7 @@
       const selPart = tr.querySelector('select[name="bloco-participacao"]');
       const selAtiv = tr.querySelector('select[name="bloco-atividades"]');
       const selComp = tr.querySelector('select[name="bloco-compreensao"]');
+      const inputObs = tr.querySelector('input[name="bloco-obs"]');
 
       if (isAusente) {
         selPart.value = 'Nenhuma';
@@ -1361,11 +1282,21 @@
         selPart.classList.add('bg-slate-200', 'text-slate-400');
         selAtiv.classList.add('bg-slate-200', 'text-slate-400');
         selComp.classList.add('bg-slate-200', 'text-slate-400');
+
+        // Altera obs para "Ausente" e bloqueia edição
+        inputObs.value = 'Ausente';
+        inputObs.readOnly = true;
+        inputObs.classList.add('bg-slate-200', 'text-slate-500', 'cursor-not-allowed');
       } else {
         selPart.disabled = false; selAtiv.disabled = false; selComp.disabled = false;
         selPart.classList.remove('bg-slate-200', 'text-slate-400');
         selAtiv.classList.remove('bg-slate-200', 'text-slate-400');
         selComp.classList.remove('bg-slate-200', 'text-slate-400');
+
+        // Limpa e libera a observação
+        inputObs.value = '';
+        inputObs.readOnly = false;
+        inputObs.classList.remove('bg-slate-200', 'text-slate-500', 'cursor-not-allowed');
       }
     }
 
@@ -1485,52 +1416,187 @@
 
     function gerarRelatorioIndividual() {
       const alunoId = document.getElementById('rel-ind-aluno').value;
-      const disciplina = document.getElementById('rel-ind-disc').value;
+      const modoRelatorio = document.getElementById('rel-ind-disc').value;
       const mes = document.getElementById('rel-ind-mes').value;
       const ano = document.getElementById('rel-ind-ano').value;
 
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
       if(!aluno) return;
 
-      const statusTag = (aluno.status || 'Ativo') === 'Inativo' ? ' (INATIVO)' : '';
-      document.getElementById('ind-out-nome').innerText = aluno.nome + statusTag;
-      
-      const descDisc = disciplina === 'TODAS' ? 'Todas as Disciplinas' : disciplina;
-      const descPeriodo = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
-      document.getElementById('ind-out-periodo').innerText = `${descDisc} | ${descPeriodo}`;
+      const container = document.getElementById('container-relatorios-individuais');
+      container.innerHTML = '';
 
-      const regs = (window.db.diario || []).filter(d => {
-        if(d.alunoId !== alunoId) return false;
-        if(!d.data) return false;
-        const dDisc = d.disciplina || window.db.config.disciplinas[0];
-        if(disciplina !== 'TODAS' && dDisc !== disciplina) return false;
-        const [dAno, dMes] = d.data.split('-');
-        if(dAno !== ano) return false;
-        if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
-        return true;
+      const disciplinasAlvo = (modoRelatorio === 'TODAS_SINTETICO' || modoRelatorio === 'TODAS_ANALITICO') 
+        ? window.db.config.disciplinas 
+        : [modoRelatorio];
+
+      disciplinasAlvo.forEach((disciplina, index) => {
+        const statusTag = (aluno.status || 'Ativo') === 'Inativo' ? ' (INATIVO)' : '';
+        const descPeriodo = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
+
+        const regs = (window.db.diario || []).filter(d => {
+          if(d.alunoId !== alunoId) return false;
+          if(!d.data) return false;
+          const dDisc = d.disciplina || window.db.config.disciplinas[0];
+          if(dDisc !== disciplina) return false;
+          const [dAno, dMes] = d.data.split('-');
+          if(dAno !== ano) return false;
+          if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
+          return true;
+        });
+
+        const totalAulas = regs.length;
+        const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
+        const taxaFreq = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
+
+        const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+
+        const isAnalitico = (modoRelatorio === 'TODAS_ANALITICO');
+        const quebraPaginaClass = (index > 0) ? 'page-break pt-6' : '';
+
+        let htmlBloco = `
+          <div class="${quebraPaginaClass}">
+            <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+              <div class="mb-3 flex justify-center">
+                <img src="${document.getElementById('img-logo-relatorio').src}" alt="Logotipo" class="max-h-20 object-contain ${document.getElementById('img-logo-relatorio').classList.contains('hidden') ? 'hidden' : ''}" />
+              </div>
+              <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
+              <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
+            </div>
+
+            <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
+              <div>
+                <p class="text-xs text-slate-500 uppercase font-bold">Nome do Aluno:</p>
+                <p class="text-xl font-black text-slate-900">${aluno.nome}${statusTag}</p>
+              </div>
+              <div>
+                <p class="text-xs text-slate-500 uppercase font-bold">Disciplina e Período:</p>
+                <p class="text-lg font-bold text-amber-600">${disciplina} | ${descPeriodo}</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">FREQUÊNCIA E AULAS</div>
+                <table class="w-full text-left font-bold border-collapse">
+                  <tr class="border-b">
+                    <td class="p-3 bg-slate-100 border-r">Total de aulas registradas:</td>
+                    <td class="p-3 text-right text-lg">${totalAulas}</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="p-3 bg-slate-100 border-r">Total de presenças:</td>
+                    <td class="p-3 text-right text-lg text-emerald-700">${totalPresencas}</td>
+                  </tr>
+                  <tr>
+                    <td class="p-3 bg-slate-900 text-white border-r">Taxa de Frequência:</td>
+                    <td class="p-3 text-right text-xl font-black text-amber-500 bg-slate-900">${taxaFreq.toFixed(2).replace('.', ',')}%</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">PARTICIPAÇÃO NA AULA</div>
+                <table class="w-full text-left font-bold border-collapse">
+                  <tr class="border-b">
+                    <td class="p-2.5 bg-slate-100 border-r">Ativa:</td>
+                    <td class="p-2.5 text-right">${calcPct('participacao', 'Ativa')}</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="p-2.5 bg-slate-100 border-r">Estimulada:</td>
+                    <td class="p-2.5 text-right">${calcPct('participacao', 'Estimulada')}</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2.5 bg-slate-100 border-r">Nenhuma:</td>
+                    <td class="p-2.5 text-right">${calcPct('participacao', 'Nenhuma')}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">REALIZAÇÃO DAS ATIVIDADES</div>
+                <table class="w-full text-left font-bold border-collapse">
+                  <tr class="border-b">
+                    <td class="p-2.5 bg-slate-100 border-r">Autônomo:</td>
+                    <td class="p-2.5 text-right">${calcPct('atividades', 'Autônomo')}</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="p-2.5 bg-slate-100 border-r">Com ajuda:</td>
+                    <td class="p-2.5 text-right">${calcPct('atividades', 'Com ajuda')}</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2.5 bg-slate-100 border-r">Não realiza:</td>
+                    <td class="p-2.5 text-right">${calcPct('atividades', 'Não realiza')}</td>
+                  </tr>
+                </table>
+              </div>
+
+              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">COMPREENSÃO DO CONTEÚDO</div>
+                <table class="w-full text-left font-bold border-collapse">
+                  <tr class="border-b">
+                    <td class="p-2.5 bg-slate-100 border-r">Boa:</td>
+                    <td class="p-2.5 text-right">${calcPct('compreensao', 'Boa')}</td>
+                  </tr>
+                  <tr class="border-b">
+                    <td class="p-2.5 bg-slate-100 border-r">Regular:</td>
+                    <td class="p-2.5 text-right">${calcPct('compreensao', 'Regular')}</td>
+                  </tr>
+                  <tr>
+                    <td class="p-2.5 bg-slate-100 border-r">Não suficiente:</td>
+                    <td class="p-2.5 text-right">${calcPct('compreensao', 'Não suficiente')}</td>
+                  </tr>
+                </table>
+              </div>
+            </div>
+        `;
+
+        if (isAnalitico) {
+          htmlBloco += `
+            <div class="mt-6">
+              <h3 class="font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-1 text-sm">Histórico Detalhado de Aulas - ${disciplina}</h3>
+              <table class="w-full text-left border-collapse border-2 border-slate-400 text-xs">
+                <thead>
+                  <tr class="bg-slate-900 text-white">
+                    <th class="p-2 border">Data</th>
+                    <th class="p-2 border">Presença</th>
+                    <th class="p-2 border">Participação</th>
+                    <th class="p-2 border">Atividades</th>
+                    <th class="p-2 border">Compreensão</th>
+                    <th class="p-2 border">Observação</th>
+                  </tr>
+                </thead>
+                <tbody>
+          `;
+          if (regs.length === 0) {
+            htmlBloco += `<tr><td colspan="6" class="p-3 text-center font-bold text-slate-500">Nenhum registro para esta disciplina.</td></tr>`;
+          } else {
+            regs.sort((a,b) => new Date(a.data) - new Date(b.data)).forEach(r => {
+              htmlBloco += `
+                <tr class="border-b font-semibold">
+                  <td class="p-2 border">${r.data ? r.data.split('-').reverse().join('/') : '-'}</td>
+                  <td class="p-2 border ${r.presenca === 'Presente' ? 'text-emerald-700' : 'text-red-600'}">${r.presenca}</td>
+                  <td class="p-2 border">${r.participacao}</td>
+                  <td class="p-2 border">${r.atividades}</td>
+                  <td class="p-2 border">${r.compreensao}</td>
+                  <td class="p-2 border">${r.obs || '-'}</td>
+                </tr>
+              `;
+            });
+          }
+          htmlBloco += `</tbody></table></div>`;
+        }
+
+        htmlBloco += `
+            <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
+              <div class="w-72">
+                <p class="border-t border-slate-900 pt-1 font-bold text-sm">${window.db.config.professor}</p>
+              </div>
+            </div>
+          </div>
+        `;
+
+        container.innerHTML += htmlBloco;
       });
-
-      const totalAulas = regs.length;
-      const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
-      const taxaFreq = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
-
-      document.getElementById('ind-out-aulas').innerText = totalAulas;
-      document.getElementById('ind-out-presencas').innerText = totalPresencas;
-      document.getElementById('ind-out-taxa-freq').innerText = taxaFreq.toFixed(2).replace('.', ',') + '%';
-
-      const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
-
-      document.getElementById('ind-out-part-ativa').innerText = calcPct('participacao', 'Ativa');
-      document.getElementById('ind-out-part-estimulada').innerText = calcPct('participacao', 'Estimulada');
-      document.getElementById('ind-out-part-nenhuma').innerText = calcPct('participacao', 'Nenhuma');
-
-      document.getElementById('ind-out-ativ-autonomo').innerText = calcPct('atividades', 'Autônomo');
-      document.getElementById('ind-out-ativ-ajuda').innerText = calcPct('atividades', 'Com ajuda');
-      document.getElementById('ind-out-ativ-nao').innerText = calcPct('atividades', 'Não realiza');
-
-      document.getElementById('ind-out-comp-boa').innerText = calcPct('compreensao', 'Boa');
-      document.getElementById('ind-out-comp-regular').innerText = calcPct('compreensao', 'Regular');
-      document.getElementById('ind-out-comp-nsuficiente').innerText = calcPct('compreensao', 'Não suficiente');
     }
 
     function gerarRelatorioTurma() {
