@@ -483,6 +483,11 @@
         </div>
       </div>
 
+      <!-- Elemento oculto para armazenar o logotipo e garantir compatibilidade -->
+      <div class="hidden">
+        <img id="img-logo-relatorio" src="" alt="Logotipo Oculto" />
+      </div>
+
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-10">
         <!-- Container onde o relatório sintético ou analítico de cada disciplina será renderizado -->
         <div id="container-relatorios-individuais">
@@ -1462,11 +1467,15 @@
         const isAnalitico = (modoRelatorio === 'TODAS_ANALITICO');
         const quebraPaginaClass = (index > 0) ? 'page-break pt-6' : '';
 
+        const logoImgElement = document.getElementById('img-logo-relatorio');
+        const logoSrc = logoImgElement ? logoImgElement.src : '';
+        const logoHiddenClass = (logoImgElement && logoImgElement.classList.contains('hidden')) ? 'hidden' : '';
+
         let htmlBloco = `
           <div class="${quebraPaginaClass}">
             <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
               <div class="mb-3 flex justify-center">
-                <img src="${document.getElementById('img-logo-relatorio').src}" alt="Logotipo" class="max-h-20 object-contain ${document.getElementById('img-logo-relatorio').classList.contains('hidden') ? 'hidden' : ''}" />
+                <img src="${logoSrc}" alt="Logotipo" class="max-h-20 object-contain ${logoHiddenClass}" />
               </div>
               <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
               <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
@@ -1576,7 +1585,7 @@
         htmlBloco += `
             <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
               <div class="w-72">
-                <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor-ind">${window.db.config.professor}</p>
+                <p class="border-t border-slate-900 pt-1 font-bold text-sm">${window.db.config.professor}</p>
               </div>
             </div>
           </div>
@@ -1699,6 +1708,7 @@
       document.getElementById('diario-bloco-data').value = hoje;
       const savedLogo = localStorage.getItem('escola_logo_pdf');
       if (savedLogo) aplicarLogoNosRelatorios(savedLogo);
+      carregarSelectAlunos('rel-ind-aluno', gerarRelatorioIndividual);
     };
   </script>
 </body>
