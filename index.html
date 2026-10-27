@@ -226,20 +226,20 @@
         </form>
       </div>
 
-      <!-- Tabela de Alunos -->
-      <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
+      <!-- Tabela de Alunos com suporte a Exportação PDF (Admin) -->
+      <div id="print-alunos" class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 print-area">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
           <h3 id="titulo-tabela-alunos" class="text-lg font-black text-slate-900 flex items-center gap-2">
             <i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados (0)
           </h3>
           <div class="flex flex-wrap items-center gap-3">
-            <div>
+            <div class="no-print">
               <label class="text-xs font-bold text-slate-700 mr-1">Turma:</label>
               <select id="filtro-turma-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50 dynamic-turmas-filtro">
                 <!-- Dinâmico -->
               </select>
             </div>
-            <div>
+            <div class="no-print">
               <label class="text-xs font-bold text-slate-700 mr-1">Situação:</label>
               <select id="filtro-status-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
                 <option value="Ativo">Somente Ativos</option>
@@ -247,10 +247,13 @@
                 <option value="TODOS">Todos (Ativos + Inativos)</option>
               </select>
             </div>
+            <button onclick="gerarPDF('print-alunos', 'Relatorio_Alunos_Cadastrados')" class="btn-warning-contrast px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 admin-only no-print">
+              <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
+            </button>
           </div>
         </div>
         <div class="overflow-x-auto">
-          <table class="w-full text-left border-collapse border-2 border-slate-300">
+          <table class="w-full text-left border-collapse border-2 border-slate-300 text-sm">
             <thead>
               <tr class="bg-slate-900 text-white">
                 <th class="p-3 border">Matrícula</th>
@@ -259,7 +262,7 @@
                 <th class="p-3 border">Situação</th>
                 <th class="p-3 border">Usuário ClickIdeia</th>
                 <th class="p-3 border">Senha ClickIdeia</th>
-                <th class="p-3 border text-center admin-only">Ações</th>
+                <th class="p-3 border text-center admin-only no-print">Ações</th>
               </tr>
             </thead>
             <tbody id="tb-alunos-body"></tbody>
@@ -454,9 +457,9 @@
             <select id="rel-ind-aluno" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold"></select>
           </div>
           <div>
-            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina:</label>
-            <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro">
-              <!-- Dinâmico (Apenas disciplinas individuais) -->
+            <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina / Visão:</label>
+            <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro-especial">
+              <!-- Dinâmico com Todas Sintético/Analítico e Disciplinas -->
             </select>
           </div>
           <div>
@@ -490,7 +493,7 @@
       </div>
 
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-10">
-        <!-- Container onde o relatório resumido de cada disciplina será renderizado -->
+        <!-- Container onde o relatório resumido unificado ou por disciplina será renderizado -->
         <div id="container-relatorios-individuais">
           <!-- O conteúdo é injetado dinamicamente -->
         </div>
@@ -856,6 +859,18 @@
         if (valAtual) sel.value = valAtual;
       });
 
+      document.querySelectorAll('.dynamic-disciplinas-filtro-especial').forEach(sel => {
+        const valAtual = sel.value;
+        sel.innerHTML = `
+          <option value="TODAS_SINTETICO">Todas as disciplinas (Sintético - Consolidado)</option>
+          <option value="TODAS_ANALITICO">Todas as disciplinas (Analítico - Detalhado)</option>
+        `;
+        cfg.disciplinas.forEach(d => {
+          sel.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+        if (valAtual) sel.value = valAtual;
+      });
+
       if (!document.getElementById('sec-diario').classList.contains('hidden')) carregarChamadaBloco();
       renderAlunos();
     }
@@ -1104,7 +1119,7 @@
             <td class="p-3 border"><span class="px-2 py-1 rounded text-xs font-black ${isAtivo ? 'bg-emerald-100 text-emerald-800' : 'bg-red-100 text-red-800'}">${a.status || 'Ativo'}</span></td>
             <td class="p-3 border">${a.userClick || '-'}</td>
             <td class="p-3 border">${a.passClick || '-'}</td>
-            <td class="p-3 border text-center space-x-2 admin-only">
+            <td class="p-3 border text-center space-x-2 admin-only no-print">
               <button onclick="editarAluno('${a.id}')" title="Editar" class="text-amber-600 hover:text-amber-800 text-lg"><i class="fa-solid fa-pen-to-square"></i></button>
               <button onclick="excluirAluno('${a.id}')" title="Excluir" class="text-red-600 hover:text-red-800 text-lg"><i class="fa-solid fa-trash-can"></i></button>
             </td>
@@ -1375,7 +1390,7 @@
 
     function gerarRelatorioIndividual() {
       const alunoId = document.getElementById('rel-ind-aluno').value;
-      const disciplina = document.getElementById('rel-ind-disc').value;
+      const selecaoDisc = document.getElementById('rel-ind-disc').value;
       const mes = document.getElementById('rel-ind-mes').value;
       const ano = document.getElementById('rel-ind-ano').value;
 
@@ -1385,121 +1400,173 @@
       const container = document.getElementById('container-relatorios-individuais');
       container.innerHTML = '';
 
-      const disciplinasAlvo = (disciplina === 'TODAS') ? window.db.config.disciplinas : [disciplina];
+      const statusTag = (aluno.status || 'Ativo') === 'Inativo' ? ' (INATIVO)' : '';
+      const descPeriodo = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
 
-      disciplinasAlvo.forEach((disc, index) => {
-        const statusTag = (aluno.status || 'Ativo') === 'Inativo' ? ' (INATIVO)' : '';
-        const descPeriodo = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
+      let disciplinasAlvo = [];
+      let labelDisciplina = "";
+      let isAnalitico = false;
 
-        const regs = (window.db.diario || []).filter(d => {
-          if(d.alunoId !== alunoId) return false;
-          if(!d.data) return false;
-          const dDisc = d.disciplina || window.db.config.disciplinas[0];
-          if(dDisc !== disc) return false;
-          const [dAno, dMes] = d.data.split('-');
-          if(dAno !== ano) return false;
-          if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
-          return true;
-        });
+      if (selecaoDisc === 'TODAS_SINTETICO') {
+        disciplinasAlvo = window.db.config.disciplinas;
+        labelDisciplina = "Todas as Disciplinas (Consolidado Geral)";
+      } else if (selecaoDisc === 'TODAS_ANALITICO') {
+        disciplinasAlvo = window.db.config.disciplinas;
+        labelDisciplina = "Todas as Disciplinas (Detalhado Analítico)";
+        isAnalitico = true;
+      } else {
+        disciplinasAlvo = [selecaoDisc];
+        labelDisciplina = selecaoDisc;
+        isAnalitico = true;
+      }
 
-        const totalAulas = regs.length;
-        const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
-        const faltasSem = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta sem justificativa').length;
-        const faltasJust = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta justificada').length;
-        const taxaFreq = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
+      // Filtra registros do diário
+      const regs = (window.db.diario || []).filter(d => {
+        if(d.alunoId !== alunoId) return false;
+        if(!d.data) return false;
+        const dDisc = d.disciplina || window.db.config.disciplinas[0];
+        if(!disciplinasAlvo.includes(dDisc)) return false;
+        const [dAno, dMes] = d.data.split('-');
+        if(dAno !== ano) return false;
+        if(mes !== 'TODOS' && parseInt(dMes, 10) !== parseInt(mes, 10)) return false;
+        return true;
+      });
 
-        const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+      const totalAulas = regs.length;
+      const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
+      const faltasSem = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta sem justificativa').length;
+      const faltasJust = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta justificada').length;
+      const taxaFreq = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
 
-        const quebraPaginaClass = (index > 0) ? 'page-break pt-6' : '';
+      const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
 
-        const logoImgElement = document.getElementById('img-logo-relatorio');
-        const logoSrc = logoImgElement ? logoImgElement.src : '';
-        const logoHiddenClass = (logoImgElement && logoImgElement.classList.contains('hidden')) ? 'hidden' : '';
+      const logoImgElement = document.getElementById('img-logo-relatorio');
+      const logoSrc = logoImgElement ? logoImgElement.src : '';
+      const logoHiddenClass = (logoImgElement && logoImgElement.classList.contains('hidden')) ? 'hidden' : '';
 
-        let htmlBloco = `
-          <div class="${quebraPaginaClass}">
-            <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
-              <div class="mb-3 flex justify-center">
-                <img src="${logoSrc}" alt="Logotipo" class="max-h-20 object-contain ${logoHiddenClass}" />
-              </div>
-              <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
-              <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
+      let htmlBloco = `
+        <div>
+          <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
+            <div class="mb-3 flex justify-center">
+              <img src="${logoSrc}" alt="Logotipo" class="max-h-20 object-contain ${logoHiddenClass}" />
             </div>
+            <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
+            <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
+          </div>
 
-            <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
-              <div>
-                <p class="text-xs text-slate-500 uppercase font-bold">Nome do Aluno:</p>
-                <p class="text-xl font-black text-slate-900">${aluno.nome}${statusTag}</p>
-              </div>
-              <div>
-                <p class="text-xs text-slate-500 uppercase font-bold">Disciplina e Período:</p>
-                <p class="text-lg font-bold text-amber-600">${disc} | ${descPeriodo}</p>
-              </div>
+          <div class="grid grid-cols-2 gap-4 mb-6 bg-slate-100 p-4 rounded-lg border-2 border-slate-300">
+            <div>
+              <p class="text-xs text-slate-500 uppercase font-bold">Nome do Aluno:</p>
+              <p class="text-xl font-black text-slate-900">${aluno.nome}${statusTag}</p>
             </div>
-
-            <!-- Bloco de Frequência Individual Detalhado -->
-            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
-              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-                <p class="text-xs text-slate-500 uppercase">Total Aulas</p>
-                <p class="text-lg text-slate-900">${totalAulas}</p>
-              </div>
-              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-                <p class="text-xs text-emerald-700 uppercase">Presenças</p>
-                <p class="text-lg text-emerald-800">${totalPresencas}</p>
-              </div>
-              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-                <p class="text-xs text-red-600 uppercase">F. Sem Justif.</p>
-                <p class="text-lg text-red-700">${faltasSem}</p>
-              </div>
-              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-                <p class="text-xs text-blue-600 uppercase">F. Justificadas</p>
-                <p class="text-lg text-blue-700">${faltasJust}</p>
-              </div>
-              <div class="bg-slate-900 text-white p-2.5">
-                <p class="text-xs text-amber-400 uppercase">Frequência</p>
-                <p class="text-lg text-amber-300">${taxaFreq.toFixed(2).replace('.', ',')}%</p>
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">PARTICIPAÇÃO</div>
-                <table class="w-full text-left font-bold border-collapse text-sm">
-                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Ativa:</td><td class="p-2 text-right">${calcPct('participacao', 'Ativa')}</td></tr>
-                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Estimulada:</td><td class="p-2 text-right">${calcPct('participacao', 'Estimulada')}</td></tr>
-                  <tr><td class="p-2 bg-slate-100 border-r">Nenhuma:</td><td class="p-2 text-right">${calcPct('participacao', 'Nenhuma')}</td></tr>
-                </table>
-              </div>
-
-              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">ATIVIDADES</div>
-                <table class="w-full text-left font-bold border-collapse text-sm">
-                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Autônomo:</td><td class="p-2 text-right">${calcPct('atividades', 'Autônomo')}</td></tr>
-                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Com ajuda:</td><td class="p-2 text-right">${calcPct('atividades', 'Com ajuda')}</td></tr>
-                  <tr><td class="p-2 bg-slate-100 border-r">Não realiza:</td><td class="p-2 text-right">${calcPct('atividades', 'Não realiza')}</td></tr>
-                </table>
-              </div>
-
-              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">COMPREENSÃO</div>
-                <table class="w-full text-left font-bold border-collapse text-sm">
-                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Boa:</td><td class="p-2 text-right">${calcPct('compreensao', 'Boa')}</td></tr>
-                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Regular:</td><td class="p-2 text-right">${calcPct('compreensao', 'Regular')}</td></tr>
-                  <tr><td class="p-2 bg-slate-100 border-r">Não suficiente:</td><td class="p-2 text-right">${calcPct('compreensao', 'Não suficiente')}</td></tr>
-                </table>
-              </div>
-            </div>
-
-            <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
-              <div class="w-72">
-                <p class="border-t border-slate-900 pt-1 font-bold text-sm">${window.db.config.professor}</p>
-              </div>
+            <div>
+              <p class="text-xs text-slate-500 uppercase font-bold">Disciplina(s) e Período:</p>
+              <p class="text-lg font-bold text-amber-600">${labelDisciplina} | ${descPeriodo}</p>
             </div>
           </div>
-        `;
 
-        container.innerHTML += htmlBloco;
-      });
+          <!-- Bloco de Frequência Individual Consolidado -->
+          <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
+            <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+              <p class="text-xs text-slate-500 uppercase">Total Aulas</p>
+              <p class="text-lg text-slate-900">${totalAulas}</p>
+            </div>
+            <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+              <p class="text-xs text-emerald-700 uppercase">Presenças</p>
+              <p class="text-lg text-emerald-800">${totalPresencas}</p>
+            </div>
+            <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+              <p class="text-xs text-red-600 uppercase">F. Sem Justif.</p>
+              <p class="text-lg text-red-700">${faltasSem}</p>
+            </div>
+            <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+              <p class="text-xs text-blue-600 uppercase">F. Justificadas</p>
+              <p class="text-lg text-blue-700">${faltasJust}</p>
+            </div>
+            <div class="bg-slate-900 text-white p-2.5">
+              <p class="text-xs text-amber-400 uppercase">Frequência</p>
+              <p class="text-lg text-amber-300">${taxaFreq.toFixed(2).replace('.', ',')}%</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+            <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+              <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">PARTICIPAÇÃO</div>
+              <table class="w-full text-left font-bold border-collapse text-sm">
+                <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Ativa:</td><td class="p-2 text-right">${calcPct('participacao', 'Ativa')}</td></tr>
+                <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Estimulada:</td><td class="p-2 text-right">${calcPct('participacao', 'Estimulada')}</td></tr>
+                <tr><td class="p-2 bg-slate-100 border-r">Nenhuma:</td><td class="p-2 text-right">${calcPct('participacao', 'Nenhuma')}</td></tr>
+              </table>
+            </div>
+
+            <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+              <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">ATIVIDADES</div>
+              <table class="w-full text-left font-bold border-collapse text-sm">
+                <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Autônomo:</td><td class="p-2 text-right">${calcPct('atividades', 'Autônomo')}</td></tr>
+                <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Com ajuda:</td><td class="p-2 text-right">${calcPct('atividades', 'Com ajuda')}</td></tr>
+                <tr><td class="p-2 bg-slate-100 border-r">Não realiza:</td><td class="p-2 text-right">${calcPct('atividades', 'Não realiza')}</td></tr>
+              </table>
+            </div>
+
+            <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+              <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">COMPREENSÃO</div>
+              <table class="w-full text-left font-bold border-collapse text-sm">
+                <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Boa:</td><td class="p-2 text-right">${calcPct('compreensao', 'Boa')}</td></tr>
+                <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Regular:</td><td class="p-2 text-right">${calcPct('compreensao', 'Regular')}</td></tr>
+                <tr><td class="p-2 bg-slate-100 border-r">Não suficiente:</td><td class="p-2 text-right">${calcPct('compreensao', 'Não suficiente')}</td></tr>
+              </table>
+            </div>
+          </div>
+      `;
+
+      if (isAnalitico) {
+        htmlBloco += `
+          <div class="mt-6">
+            <h3 class="font-black text-slate-900 mb-2 border-b-2 border-slate-900 pb-1 text-sm">Histórico Detalhado de Aulas</h3>
+            <table class="w-full text-left border-collapse border-2 border-slate-400 text-xs">
+              <thead>
+                <tr class="bg-slate-900 text-white">
+                  <th class="p-2 border">Data</th>
+                  <th class="p-2 border">Disciplina</th>
+                  <th class="p-2 border">Presença</th>
+                  <th class="p-2 border">Participação</th>
+                  <th class="p-2 border">Atividades</th>
+                  <th class="p-2 border">Compreensão</th>
+                  <th class="p-2 border">Observação / Justificativa</th>
+                </tr>
+              </thead>
+              <tbody>
+        `;
+        if (regs.length === 0) {
+          htmlBloco += `<tr><td colspan="7" class="p-3 text-center font-bold text-slate-500">Nenhum registro encontrado para este período.</td></tr>`;
+        } else {
+          regs.sort((a,b) => new Date(a.data) - new Date(b.data)).forEach(r => {
+            htmlBloco += `
+              <tr class="border-b font-semibold">
+                <td class="p-2 border">${r.data ? r.data.split('-').reverse().join('/') : '-'}</td>
+                <td class="p-2 border font-bold text-amber-700">${r.disciplina || 'Disciplina 1'}</td>
+                <td class="p-2 border ${r.presenca === 'Presente' ? 'text-emerald-700' : 'text-red-600'}">${r.presenca}</td>
+                <td class="p-2 border">${r.participacao}</td>
+                <td class="p-2 border">${r.atividades}</td>
+                <td class="p-2 border">${r.compreensao}</td>
+                <td class="p-2 border">${r.obs || '-'}</td>
+              </tr>
+            `;
+          });
+        }
+        htmlBloco += `</tbody></table></div>`;
+      }
+
+      htmlBloco += `
+          <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
+            <div class="w-72">
+              <p class="border-t border-slate-900 pt-1 font-bold text-sm">${window.db.config.professor}</p>
+            </div>
+          </div>
+        </div>
+      `;
+
+      container.innerHTML = htmlBloco;
     }
 
     function gerarRelatorioTurma() {
