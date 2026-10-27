@@ -645,8 +645,8 @@
           <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Disciplina:</span> <span id="sec-out-disc" class="text-amber-700">Todas</span> | <span class="text-slate-500 uppercase text-xs">Situação:</span> <span id="sec-out-status" class="text-slate-900">-</span></p>
         </div>
 
-        <!-- Bloco de Resumo Estatístico -->
-        <div class="grid grid-cols-4 gap-2 mb-6 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
+        <!-- Bloco de Resumo Estatístico Atualizado -->
+        <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
           <div class="bg-slate-100 p-2.5 border-r border-slate-800">
             <p class="text-xs text-slate-500 uppercase">Total Aulas</p>
             <p id="sec-sum-aulas" class="text-lg text-slate-900">0</p>
@@ -656,8 +656,12 @@
             <p id="sec-sum-presencas" class="text-lg text-emerald-800">0</p>
           </div>
           <div class="bg-slate-100 p-2.5 border-r border-slate-800">
-            <p class="text-xs text-red-600 uppercase">Faltas</p>
-            <p id="sec-sum-faltas" class="text-lg text-red-700">0</p>
+            <p class="text-xs text-red-600 uppercase">F. Sem Justif.</p>
+            <p id="sec-sum-faltas-sem" class="text-lg text-red-700">0</p>
+          </div>
+          <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+            <p class="text-xs text-blue-600 uppercase">F. Justificadas</p>
+            <p id="sec-sum-faltas-just" class="text-lg text-blue-700">0</p>
           </div>
           <div class="bg-slate-900 text-white p-2.5">
             <p class="text-xs text-amber-400 uppercase">Frequência</p>
@@ -672,7 +676,7 @@
               <th class="p-2 border">Data da Aula</th>
               <th class="p-2 border">Disciplina</th>
               <th class="p-2 border">Status de Presença</th>
-              <th class="p-2 border">Observações Pedagógicas</th>
+              <th class="p-2 border">Observações Pedagógicas / Justificativa</th>
             </tr>
           </thead>
           <tbody id="sec-out-tb"></tbody>
@@ -848,7 +852,6 @@
 
     function atualizarInterfacesDinamicas() {
       const cfg = window.db.config;
-      document.getElementById('assinatura-professor-ind').innerText = cfg.professor;
       document.getElementById('assinatura-professor-turma').innerText = cfg.professor;
       document.getElementById('assinatura-professor-sec').innerText = cfg.professor;
 
@@ -888,7 +891,6 @@
         if (valAtual) sel.value = valAtual;
       });
 
-      // Seletor especial para o Relatório Individual (Sintético e Analítico)
       document.querySelectorAll('.dynamic-disciplinas-filtro-especial').forEach(sel => {
         const valAtual = sel.value;
         sel.innerHTML = `
@@ -1272,7 +1274,7 @@
       const selPart = tr.querySelector('select[name="bloco-participacao"]');
       const selAtiv = tr.querySelector('select[name="bloco-atividades"]');
       const selComp = tr.querySelector('select[name="bloco-compreensao"]');
-      const inputObs = tr.querySelector('input[name="bloco-obs"]');
+      const tdObs = tr.querySelector('td:last-child');
 
       if (isAusente) {
         selPart.value = 'Nenhuma';
@@ -1283,20 +1285,23 @@
         selAtiv.classList.add('bg-slate-200', 'text-slate-400');
         selComp.classList.add('bg-slate-200', 'text-slate-400');
 
-        // Altera obs para "Ausente" e bloqueia edição
-        inputObs.value = 'Ausente';
-        inputObs.readOnly = true;
-        inputObs.classList.add('bg-slate-200', 'text-slate-500', 'cursor-not-allowed');
+        // Substitui o input por listbox de opções de falta
+        tdObs.innerHTML = `
+          <select name="bloco-obs" class="w-full border border-slate-400 rounded p-1 text-xs font-bold bg-amber-50 text-slate-900">
+            <option value="Falta sem justificativa">Falta sem justificativa</option>
+            <option value="Falta justificada">Falta justificada</option>
+          </select>
+        `;
       } else {
         selPart.disabled = false; selAtiv.disabled = false; selComp.disabled = false;
         selPart.classList.remove('bg-slate-200', 'text-slate-400');
         selAtiv.classList.remove('bg-slate-200', 'text-slate-400');
         selComp.classList.remove('bg-slate-200', 'text-slate-400');
 
-        // Limpa e libera a observação
-        inputObs.value = '';
-        inputObs.readOnly = false;
-        inputObs.classList.remove('bg-slate-200', 'text-slate-500', 'cursor-not-allowed');
+        // Restaura input de texto livre
+        tdObs.innerHTML = `
+          <input type="text" name="bloco-obs" placeholder="Obs obrigatória..." required class="w-full border border-slate-400 rounded p-1 text-xs font-semibold">
+        `;
       }
     }
 
@@ -1320,7 +1325,8 @@
         const alunoId = tr.querySelector('input[name="bloco-aluno-id"]').value;
         const alunoNome = tr.querySelector('input[name="bloco-aluno-nome"]').value;
         const presenca = tr.querySelector('select[name="bloco-presenca"]').value;
-        const obsVal = tr.querySelector('input[name="bloco-obs"]').value;
+        const obsElement = tr.querySelector('[name="bloco-obs"]');
+        const obsVal = obsElement ? obsElement.value : '';
 
         if (!obsVal) {
           alert(`O campo de Observação Pedagógica é obrigatório para todos os alunos.`);
@@ -1447,6 +1453,8 @@
 
         const totalAulas = regs.length;
         const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
+        const faltasSem = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta sem justificativa').length;
+        const faltasJust = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta justificada').length;
         const taxaFreq = totalAulas > 0 ? (totalPresencas / totalAulas) * 100 : 0;
 
         const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
@@ -1475,76 +1483,55 @@
               </div>
             </div>
 
-            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- Bloco de Frequência Individual Detalhado -->
+            <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
+              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+                <p class="text-xs text-slate-500 uppercase">Total Aulas</p>
+                <p class="text-lg text-slate-900">${totalAulas}</p>
+              </div>
+              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+                <p class="text-xs text-emerald-700 uppercase">Presenças</p>
+                <p class="text-lg text-emerald-800">${totalPresencas}</p>
+              </div>
+              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+                <p class="text-xs text-red-600 uppercase">F. Sem Justif.</p>
+                <p class="text-lg text-red-700">${faltasSem}</p>
+              </div>
+              <div class="bg-slate-100 p-2.5 border-r border-slate-800">
+                <p class="text-xs text-blue-600 uppercase">F. Justificadas</p>
+                <p class="text-lg text-blue-700">${faltasJust}</p>
+              </div>
+              <div class="bg-slate-900 text-white p-2.5">
+                <p class="text-xs text-amber-400 uppercase">Frequência</p>
+                <p class="text-lg text-amber-300">${taxaFreq.toFixed(2).replace('.', ',')}%</p>
+              </div>
+            </div>
+
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
               <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">FREQUÊNCIA E AULAS</div>
-                <table class="w-full text-left font-bold border-collapse">
-                  <tr class="border-b">
-                    <td class="p-3 bg-slate-100 border-r">Total de aulas registradas:</td>
-                    <td class="p-3 text-right text-lg">${totalAulas}</td>
-                  </tr>
-                  <tr class="border-b">
-                    <td class="p-3 bg-slate-100 border-r">Total de presenças:</td>
-                    <td class="p-3 text-right text-lg text-emerald-700">${totalPresencas}</td>
-                  </tr>
-                  <tr>
-                    <td class="p-3 bg-slate-900 text-white border-r">Taxa de Frequência:</td>
-                    <td class="p-3 text-right text-xl font-black text-amber-500 bg-slate-900">${taxaFreq.toFixed(2).replace('.', ',')}%</td>
-                  </tr>
+                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">PARTICIPAÇÃO</div>
+                <table class="w-full text-left font-bold border-collapse text-sm">
+                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Ativa:</td><td class="p-2 text-right">${calcPct('participacao', 'Ativa')}</td></tr>
+                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Estimulada:</td><td class="p-2 text-right">${calcPct('participacao', 'Estimulada')}</td></tr>
+                  <tr><td class="p-2 bg-slate-100 border-r">Nenhuma:</td><td class="p-2 text-right">${calcPct('participacao', 'Nenhuma')}</td></tr>
                 </table>
               </div>
 
               <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">PARTICIPAÇÃO NA AULA</div>
-                <table class="w-full text-left font-bold border-collapse">
-                  <tr class="border-b">
-                    <td class="p-2.5 bg-slate-100 border-r">Ativa:</td>
-                    <td class="p-2.5 text-right">${calcPct('participacao', 'Ativa')}</td>
-                  </tr>
-                  <tr class="border-b">
-                    <td class="p-2.5 bg-slate-100 border-r">Estimulada:</td>
-                    <td class="p-2.5 text-right">${calcPct('participacao', 'Estimulada')}</td>
-                  </tr>
-                  <tr>
-                    <td class="p-2.5 bg-slate-100 border-r">Nenhuma:</td>
-                    <td class="p-2.5 text-right">${calcPct('participacao', 'Nenhuma')}</td>
-                  </tr>
+                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">ATIVIDADES</div>
+                <table class="w-full text-left font-bold border-collapse text-sm">
+                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Autônomo:</td><td class="p-2 text-right">${calcPct('atividades', 'Autônomo')}</td></tr>
+                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Com ajuda:</td><td class="p-2 text-right">${calcPct('atividades', 'Com ajuda')}</td></tr>
+                  <tr><td class="p-2 bg-slate-100 border-r">Não realiza:</td><td class="p-2 text-right">${calcPct('atividades', 'Não realiza')}</td></tr>
                 </table>
               </div>
 
               <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">REALIZAÇÃO DAS ATIVIDADES</div>
-                <table class="w-full text-left font-bold border-collapse">
-                  <tr class="border-b">
-                    <td class="p-2.5 bg-slate-100 border-r">Autônomo:</td>
-                    <td class="p-2.5 text-right">${calcPct('atividades', 'Autônomo')}</td>
-                  </tr>
-                  <tr class="border-b">
-                    <td class="p-2.5 bg-slate-100 border-r">Com ajuda:</td>
-                    <td class="p-2.5 text-right">${calcPct('atividades', 'Com ajuda')}</td>
-                  </tr>
-                  <tr>
-                    <td class="p-2.5 bg-slate-100 border-r">Não realiza:</td>
-                    <td class="p-2.5 text-right">${calcPct('atividades', 'Não realiza')}</td>
-                  </tr>
-                </table>
-              </div>
-
-              <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
-                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">COMPREENSÃO DO CONTEÚDO</div>
-                <table class="w-full text-left font-bold border-collapse">
-                  <tr class="border-b">
-                    <td class="p-2.5 bg-slate-100 border-r">Boa:</td>
-                    <td class="p-2.5 text-right">${calcPct('compreensao', 'Boa')}</td>
-                  </tr>
-                  <tr class="border-b">
-                    <td class="p-2.5 bg-slate-100 border-r">Regular:</td>
-                    <td class="p-2.5 text-right">${calcPct('compreensao', 'Regular')}</td>
-                  </tr>
-                  <tr>
-                    <td class="p-2.5 bg-slate-100 border-r">Não suficiente:</td>
-                    <td class="p-2.5 text-right">${calcPct('compreensao', 'Não suficiente')}</td>
-                  </tr>
+                <div class="bg-slate-900 text-white font-black p-3 text-center border-b-2 border-slate-800">COMPREENSÃO</div>
+                <table class="w-full text-left font-bold border-collapse text-sm">
+                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Boa:</td><td class="p-2 text-right">${calcPct('compreensao', 'Boa')}</td></tr>
+                  <tr class="border-b"><td class="p-2 bg-slate-100 border-r">Regular:</td><td class="p-2 text-right">${calcPct('compreensao', 'Regular')}</td></tr>
+                  <tr><td class="p-2 bg-slate-100 border-r">Não suficiente:</td><td class="p-2 text-right">${calcPct('compreensao', 'Não suficiente')}</td></tr>
                 </table>
               </div>
             </div>
@@ -1562,7 +1549,7 @@
                     <th class="p-2 border">Participação</th>
                     <th class="p-2 border">Atividades</th>
                     <th class="p-2 border">Compreensão</th>
-                    <th class="p-2 border">Observação</th>
+                    <th class="p-2 border">Observação / Justificativa</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1589,7 +1576,7 @@
         htmlBloco += `
             <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center flex justify-center">
               <div class="w-72">
-                <p class="border-t border-slate-900 pt-1 font-bold text-sm">${window.db.config.professor}</p>
+                <p class="border-t border-slate-900 pt-1 font-bold text-sm" id="assinatura-professor-ind">${window.db.config.professor}</p>
               </div>
             </div>
           </div>
@@ -1658,12 +1645,14 @@
 
       const totalAulas = regs.length;
       const presencas = regs.filter(r => r.presenca === 'Presente').length;
-      const faltas = totalAulas - presencas;
+      const faltasSem = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta sem justificativa').length;
+      const faltasJust = regs.filter(r => r.presenca === 'Ausente' && r.obs === 'Falta justificada').length;
       const taxa = totalAulas > 0 ? (presencas / totalAulas) * 100 : 0;
 
       document.getElementById('sec-sum-aulas').innerText = totalAulas;
       document.getElementById('sec-sum-presencas').innerText = presencas;
-      document.getElementById('sec-sum-faltas').innerText = faltas;
+      document.getElementById('sec-sum-faltas-sem').innerText = faltasSem;
+      document.getElementById('sec-sum-faltas-just').innerText = faltasJust;
       document.getElementById('sec-sum-taxa').innerText = taxa.toFixed(2).replace('.', ',') + '%';
 
       if(regs.length === 0) {
