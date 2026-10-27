@@ -226,7 +226,7 @@
         </form>
       </div>
 
-      <!-- Tabela de Alunos com suporte a Exportação PDF (Admin) -->
+      <!-- Tabela de Alunos com opções de ordenação e Exportação PDF -->
       <div id="print-alunos" class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 print-area">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4">
           <h3 id="titulo-tabela-alunos" class="text-lg font-black text-slate-900 flex items-center gap-2">
@@ -245,6 +245,13 @@
                 <option value="Ativo">Somente Ativos</option>
                 <option value="Inativo">Somente Inativos</option>
                 <option value="TODOS">Todos (Ativos + Inativos)</option>
+              </select>
+            </div>
+            <div>
+              <label class="text-xs font-bold text-slate-700 mr-1">Ordenação:</label>
+              <select id="ordenacao-alunos" onchange="renderAlunos()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
+                <option value="alfabetica">Ordem Alfabética Geral (A-Z)</option>
+                <option value="turma">Agrupado por Turmas (A-Z)</option>
               </select>
             </div>
             <button onclick="gerarPDF('print-alunos', 'Relatorio_Alunos_Cadastrados')" class="btn-warning-contrast px-3 py-1.5 rounded-lg text-xs flex items-center gap-2 admin-only no-print">
@@ -459,7 +466,7 @@
           <div>
             <label class="block text-sm font-bold text-slate-900 mb-1">Disciplina / Visão:</label>
             <select id="rel-ind-disc" onchange="gerarRelatorioIndividual()" class="w-full border-2 border-slate-400 rounded-lg p-2 font-bold bg-amber-50 dynamic-disciplinas-filtro-especial">
-              <!-- Dinâmico com Todas Sintético/Analítico e Disciplinas -->
+              <!-- Dinâmico -->
             </select>
           </div>
           <div>
@@ -487,16 +494,13 @@
         </div>
       </div>
 
-      <!-- Elemento oculto para armazenar o logotipo e garantir compatibilidade -->
+      <!-- Elemento oculto para armazenar o logotipo -->
       <div class="hidden">
         <img id="img-logo-relatorio" src="" alt="Logotipo Oculto" />
       </div>
 
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-10">
-        <!-- Container onde o relatório resumido unificado ou por disciplina será renderizado -->
-        <div id="container-relatorios-individuais">
-          <!-- O conteúdo é injetado dinamicamente -->
-        </div>
+        <div id="container-relatorios-individuais"></div>
       </div>
     </section>
 
@@ -648,7 +652,6 @@
           <p><span class="text-slate-500 uppercase text-xs">Matrícula:</span> <span id="sec-out-matricula" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Turma:</span> <span id="sec-out-turma" class="text-slate-900">-</span> | <span class="text-slate-500 uppercase text-xs">Situação:</span> <span id="sec-out-status" class="text-slate-900">-</span></p>
         </div>
 
-        <!-- Conteúdo injetado dinamicamente agrupado por disciplina -->
         <div id="sec-out-conteudo" class="space-y-6"></div>
 
         <div class="mt-12 pt-8 border-t-2 border-slate-400 text-center grid grid-cols-2 gap-8">
@@ -1091,14 +1094,23 @@
       const tbody = document.getElementById('tb-alunos-body');
       const filtroTurma = document.getElementById('filtro-turma-alunos').value;
       const filtroStatus = document.getElementById('filtro-status-alunos').value;
+      const tipoOrdenacao = document.getElementById('ordenacao-alunos').value;
       tbody.innerHTML = '';
 
       let lista = window.db.alunos || [];
       if (filtroTurma && filtroTurma !== 'TODAS') lista = lista.filter(a => a.turma === filtroTurma);
       if (filtroStatus !== 'TODOS') lista = lista.filter(a => (a.status || 'Ativo') === filtroStatus);
 
-      // Ordenação alfabética pelo nome do aluno (A-Z)
-      lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' }));
+      if (tipoOrdenacao === 'alfabetica') {
+        // Ordem alfabética geral (A-Z)
+        lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' }));
+      } else {
+        // Agrupado por turmas (e alfabético dentro de cada turma)
+        lista.sort((a, b) => {
+          if (a.turma !== b.turma) return a.turma.localeCompare(b.turma, 'pt-BR');
+          return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' });
+        });
+      }
 
       // Atualiza o contador no título da tabela
       const tituloTabela = document.getElementById('titulo-tabela-alunos');
@@ -1109,8 +1121,20 @@
         return;
       }
 
+      let turmaAtual = '';
       lista.forEach(a => {
         const isAtivo = (a.status || 'Ativo') === 'Ativo';
+
+        // Se estiver agrupado por turma, insere cabeçalho de seção de turma
+        if (tipoOrdenacao === 'turma' && a.turma !== turmaAtual) {
+          turmaAtual = a.turma;
+          tbody.innerHTML += `
+            <tr class="bg-amber-100 font-black text-slate-900 border-t-2 border-amber-500">
+              <td colspan="7" class="p-2.5 uppercase tracking-wide text-xs"><i class="fa-solid fa-layer-group text-amber-700"></i> Turma: ${turmaAtual}</td>
+            </tr>
+          `;
+        }
+
         tbody.innerHTML += `
           <tr class="border-b hover:bg-slate-100 font-semibold text-slate-900 ${!isAtivo ? 'bg-slate-50 text-slate-500' : ''}">
             <td class="p-3 border">${a.matricula}</td>
@@ -1185,7 +1209,6 @@
       if (!turma) return;
       let alunosAtivos = (window.db.alunos || []).filter(a => a.turma === turma && (a.status || 'Ativo') === 'Ativo');
 
-      // Ordena alfabeticamente na chamada também
       alunosAtivos.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' }));
 
       if (alunosAtivos.length === 0) {
@@ -1253,7 +1276,6 @@
         selAtiv.classList.add('bg-slate-200', 'text-slate-400');
         selComp.classList.add('bg-slate-200', 'text-slate-400');
 
-        // Substitui o input por listbox de opções de falta
         tdObs.innerHTML = `
           <select name="bloco-obs" class="w-full border border-slate-400 rounded p-1 text-xs font-bold bg-amber-50 text-slate-900">
             <option value="Falta sem justificativa">Falta sem justificativa</option>
@@ -1266,7 +1288,6 @@
         selAtiv.classList.remove('bg-slate-200', 'text-slate-400');
         selComp.classList.remove('bg-slate-200', 'text-slate-400');
 
-        // Restaura input de texto livre
         tdObs.innerHTML = `
           <input type="text" name="bloco-obs" placeholder="Obs obrigatória..." required class="w-full border border-slate-400 rounded p-1 text-xs font-semibold">
         `;
@@ -1420,7 +1441,6 @@
         isAnalitico = true;
       }
 
-      // Filtra registros do diário
       const regs = (window.db.diario || []).filter(d => {
         if(d.alunoId !== alunoId) return false;
         if(!d.data) return false;
@@ -1465,7 +1485,6 @@
             </div>
           </div>
 
-          <!-- Bloco de Frequência Individual Consolidado -->
           <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-6 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
             <div class="bg-slate-100 p-2.5 border-r border-slate-800">
               <p class="text-xs text-slate-500 uppercase">Total Aulas</p>
@@ -1579,7 +1598,6 @@
       document.getElementById('turma-out-nome').innerText = `${turma} - ${descDisc}`;
       document.getElementById('turma-out-periodo').innerText = mes === 'TODOS' ? `Ano ${ano}` : `Mês ${mes} / ${ano}`;
 
-      // Filtra registros do diário para a turma e disciplina selecionadas
       const regs = (window.db.diario || []).filter(d => {
         if(d.turma !== turma) return false;
         const dDisc = d.disciplina || window.db.config.disciplinas[0];
@@ -1591,7 +1609,6 @@
         return true;
       });
 
-      // Conta o número exato de dias/aulas únicas ministradas (agrupando por data e disciplina)
       const aulasUnicas = new Set(regs.map(r => `${r.data}_${r.disciplina || window.db.config.disciplinas[0]}`)).size;
       
       const totalPresencas = regs.filter(r => r.presenca === 'Presente').length;
@@ -1644,7 +1661,6 @@
               <span class="text-xs text-slate-600">Assiduidade Geral</span>
             </h3>
 
-            <!-- Resumo Estatístico por Disciplina -->
             <div class="grid grid-cols-2 md:grid-cols-5 gap-2 mb-4 border-2 border-slate-800 rounded-lg overflow-hidden text-center font-bold">
               <div class="bg-slate-100 p-2 border-r border-slate-800">
                 <p class="text-xs text-slate-500 uppercase">Aulas</p>
