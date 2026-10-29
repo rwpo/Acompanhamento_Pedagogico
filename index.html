@@ -169,17 +169,6 @@
 
     <!-- 1. CADASTRO DE ALUNOS -->
     <section id="sec-alunos" class="space-y-6 hidden">
-      <div class="admin-only bg-white rounded-xl shadow-md border-2 border-slate-300 p-4 mb-4 flex flex-wrap items-center justify-between gap-4">
-        <div>
-          <h3 class="text-sm font-black text-slate-900"><i class="fa-solid fa-image text-amber-600"></i> Logotipo Escolar para Relatórios PDF:</h3>
-          <p class="text-xs text-slate-500">Insira a imagem que aparecerá no cabeçalho de todos os PDFs exportados.</p>
-        </div>
-        <div class="flex items-center gap-2">
-          <input type="file" id="logo-input" accept="image/*" onchange="carregarLogo(event)" class="text-xs file:py-1.5 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-slate-900 file:text-amber-400 hover:file:bg-slate-800 cursor-pointer">
-          <button onclick="removerLogo()" class="px-2.5 py-1.5 bg-red-100 hover:bg-red-200 text-red-700 font-bold rounded-lg text-xs"><i class="fa-solid fa-trash"></i></button>
-        </div>
-      </div>
-
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6 admin-only">
         <h2 class="text-xl font-black text-slate-900 border-b-2 border-amber-500 pb-2 mb-4 flex items-center gap-2">
           <i class="fa-solid fa-user-plus text-amber-600"></i> Cadastrar / Editar Aluno
@@ -494,11 +483,6 @@
         </div>
       </div>
 
-      <!-- Elemento oculto para armazenar o logotipo -->
-      <div class="hidden">
-        <img id="img-logo-relatorio" src="" alt="Logotipo Oculto" />
-      </div>
-
       <div id="print-individual" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-10">
         <div id="container-relatorios-individuais"></div>
       </div>
@@ -553,10 +537,10 @@
         </div>
       </div>
 
-      <div id="print-turma" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
+      <div id="print-turma" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-6">
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
           <div class="mb-3 flex justify-center">
-            <img id="img-logo-turma" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
+            <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" alt="Logotipo Escolar" class="max-h-20 object-contain" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">ACOMPANHAMENTO COLETIVO DA TURMA</h1>
           <p class="text-sm font-bold text-slate-600">Relatório Consolidado de Frequência e Rendimento</p>
@@ -573,7 +557,7 @@
           </div>
         </div>
 
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
           <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
             <div class="bg-slate-900 text-white font-black p-3 text-center">INDICADORES DA TURMA</div>
             <table class="w-full font-bold">
@@ -602,6 +586,45 @@
               <tr>
                 <td class="p-3 bg-slate-100 border-r">Não suficiente:</td>
                 <td id="turma-out-comp-nsuficiente" class="p-3 text-right text-red-600">0,00%</td>
+              </tr>
+            </table>
+          </div>
+        </div>
+
+        <!-- Tabelas de Participação e Atividades para a Turma -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center">PARTICIPAÇÃO COLETIVA</div>
+            <table class="w-full font-bold">
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Ativa:</td>
+                <td id="turma-out-part-ativa" class="p-3 text-right text-slate-900">0,00%</td>
+              </tr>
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Estimulada:</td>
+                <td id="turma-out-part-estimulada" class="p-3 text-right text-slate-900">0,00%</td>
+              </tr>
+              <tr>
+                <td class="p-3 bg-slate-100 border-r">Nenhuma:</td>
+                <td id="turma-out-part-nenhuma" class="p-3 text-right text-slate-900">0,00%</td>
+              </tr>
+            </table>
+          </div>
+
+          <div class="border-2 border-slate-800 rounded-lg overflow-hidden">
+            <div class="bg-slate-900 text-white font-black p-3 text-center">DESEMPENHO EM ATIVIDADES</div>
+            <table class="w-full font-bold">
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Autônomo:</td>
+                <td id="turma-out-ativ-autonomo" class="p-3 text-right text-slate-900">0,00%</td>
+              </tr>
+              <tr class="border-b">
+                <td class="p-3 bg-slate-100 border-r">Com ajuda:</td>
+                <td id="turma-out-ativ-ajuda" class="p-3 text-right text-slate-900">0,00%</td>
+              </tr>
+              <tr>
+                <td class="p-3 bg-slate-100 border-r">Não realiza:</td>
+                <td id="turma-out-ativ-nao" class="p-3 text-right text-slate-900">0,00%</td>
               </tr>
             </table>
           </div>
@@ -641,7 +664,7 @@
       <div id="print-secretaria" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
           <div class="mb-3 flex justify-center">
-            <img id="img-logo-secretaria" src="" alt="Logotipo" class="max-h-20 object-contain hidden" />
+            <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" alt="Logotipo Escolar" class="max-h-20 object-contain" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 uppercase">DECLARAÇÃO DE FREQUÊNCIA ESCOLAR</h1>
           <p class="text-sm font-bold text-slate-600">Documento Oficial de Assiduidade - Consolidado por Disciplina</p>
@@ -894,41 +917,6 @@
       }
     }
 
-    function carregarLogo(event) {
-      const file = event.target.files[0];
-      if (!file) return;
-      const reader = new FileReader();
-      reader.onload = function(e) {
-        const base64Img = e.target.result;
-        localStorage.setItem('escola_logo_pdf', base64Img);
-        aplicarLogoNosRelatorios(base64Img);
-        alert('Logotipo carregado com sucesso!');
-      };
-      reader.readAsDataURL(file);
-    }
-
-    function removerLogo() {
-      localStorage.removeItem('escola_logo_pdf');
-      aplicarLogoNosRelatorios(null);
-      document.getElementById('logo-input').value = '';
-      alert('Logotipo removido.');
-    }
-
-    function aplicarLogoNosRelatorios(src) {
-      ['img-logo-relatorio', 'img-logo-turma', 'img-logo-secretaria'].forEach(id => {
-        const img = document.getElementById(id);
-        if (img) {
-          if (src) {
-            img.src = src;
-            img.classList.remove('hidden');
-          } else {
-            img.src = '';
-            img.classList.add('hidden');
-          }
-        }
-      });
-    }
-
     function switchTab(tabKey) {
       if ((tabKey === 'config' || tabKey === 'diario') && !isAdmin) {
         alert("Acesso restrito a administradores!");
@@ -1102,17 +1090,14 @@
       if (filtroStatus !== 'TODOS') lista = lista.filter(a => (a.status || 'Ativo') === filtroStatus);
 
       if (tipoOrdenacao === 'alfabetica') {
-        // Ordem alfabética geral (A-Z)
         lista.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' }));
       } else {
-        // Agrupado por turmas (e alfabético dentro de cada turma)
         lista.sort((a, b) => {
           if (a.turma !== b.turma) return a.turma.localeCompare(b.turma, 'pt-BR');
           return a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' });
         });
       }
 
-      // Atualiza o contador no título da tabela
       const tituloTabela = document.getElementById('titulo-tabela-alunos');
       tituloTabela.innerHTML = `<i class="fa-solid fa-list text-amber-600"></i> Alunos Cadastrados (${lista.length})`;
 
@@ -1125,7 +1110,6 @@
       lista.forEach(a => {
         const isAtivo = (a.status || 'Ativo') === 'Ativo';
 
-        // Se estiver agrupado por turma, insere cabeçalho de seção de turma
         if (tipoOrdenacao === 'turma' && a.turma !== turmaAtual) {
           turmaAtual = a.turma;
           tbody.innerHTML += `
@@ -1460,15 +1444,11 @@
 
       const calcPct = (key, val) => totalAulas > 0 ? ((regs.filter(r => r[key] === val).length / totalAulas) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
 
-      const logoImgElement = document.getElementById('img-logo-relatorio');
-      const logoSrc = logoImgElement ? logoImgElement.src : '';
-      const logoHiddenClass = (logoImgElement && logoImgElement.classList.contains('hidden')) ? 'hidden' : '';
-
       let htmlBloco = `
         <div>
           <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
             <div class="mb-3 flex justify-center">
-              <img src="${logoSrc}" alt="Logotipo" class="max-h-20 object-contain ${logoHiddenClass}" />
+              <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" alt="Logotipo Escolar" class="max-h-20 object-contain" />
             </div>
             <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
             <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
@@ -1618,11 +1598,22 @@
       document.getElementById('turma-out-aulas').innerText = aulasUnicas;
       document.getElementById('turma-out-freq').innerText = freqTurma.toFixed(2).replace('.', ',') + '%';
 
-      const calcPct = (val) => totalRegistros > 0 ? ((regs.filter(r => r.compreensao === val).length / totalRegistros) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
+      const calcPct = (key, val) => totalRegistros > 0 ? ((regs.filter(r => r[key] === val).length / totalRegistros) * 100).toFixed(2).replace('.', ',') + '%' : '0,00%';
 
-      document.getElementById('turma-out-comp-boa').innerText = calcPct('Boa');
-      document.getElementById('turma-out-comp-regular').innerText = calcPct('Regular');
-      document.getElementById('turma-out-comp-nsuficiente').innerText = calcPct('Não suficiente');
+      // Compreensão
+      document.getElementById('turma-out-comp-boa').innerText = calcPct('compreensao', 'Boa');
+      document.getElementById('turma-out-comp-regular').innerText = calcPct('compreensao', 'Regular');
+      document.getElementById('turma-out-comp-nsuficiente').innerText = calcPct('compreensao', 'Não suficiente');
+
+      // Participação
+      document.getElementById('turma-out-part-ativa').innerText = calcPct('participacao', 'Ativa');
+      document.getElementById('turma-out-part-estimulada').innerText = calcPct('participacao', 'Estimulada');
+      document.getElementById('turma-out-part-nenhuma').innerText = calcPct('participacao', 'Nenhuma');
+
+      // Atividades
+      document.getElementById('turma-out-ativ-autonomo').innerText = calcPct('atividades', 'Autônomo');
+      document.getElementById('turma-out-ativ-ajuda').innerText = calcPct('atividades', 'Com ajuda');
+      document.getElementById('turma-out-ativ-nao').innerText = calcPct('atividades', 'Não realiza');
     }
 
     function gerarRelatorioSecretaria() {
@@ -1744,8 +1735,6 @@
     window.onload = function() {
       const hoje = new Date().toISOString().slice(0,10);
       document.getElementById('diario-bloco-data').value = hoje;
-      const savedLogo = localStorage.getItem('escola_logo_pdf');
-      if (savedLogo) aplicarLogoNosRelatorios(savedLogo);
       carregarSelectAlunos('rel-ind-aluno', gerarRelatorioIndividual);
     };
   </script>
