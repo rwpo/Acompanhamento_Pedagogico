@@ -105,7 +105,7 @@
           <i class="fa-solid fa-book-open text-amber-400 text-base"></i> Histórico de Aulas
         </button>
         <button onclick="switchTab('historico')" id="tab-historico" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Date
+          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Data
         </button>
         <button onclick="switchTab('individual')" id="tab-individual" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-user-check text-amber-400 text-base"></i> Relatório Individual
@@ -643,9 +643,14 @@
           <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
             <i class="fa-solid fa-file-contract text-amber-600"></i> Declaração de Frequência do Estudante
           </h2>
-          <button onclick="gerarPDF('print-secretaria', 'Relatorio_Frequencia_Secretaria')" class="btn-warning-contrast px-4 py-2 rounded-lg text-sm flex items-center gap-2">
-            <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
-          </button>
+          <div class="flex items-center gap-2">
+            <button onclick="gerarPDF('print-secretaria', 'Relatorio_Frequencia_Secretaria')" class="btn-warning-contrast px-4 py-2 rounded-lg text-sm flex items-center gap-2">
+              <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
+            </button>
+            <button onclick="enviarRelatorioSecretariaEmail()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold border-2 border-amber-500 rounded-lg text-sm flex items-center gap-2 admin-only">
+              <i class="fa-solid fa-envelope"></i> Enviar por E-mail (PDF)
+            </button>
+          </div>
         </div>
         <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
@@ -887,7 +892,7 @@
         const valAtual = sel.value;
         sel.innerHTML = `
           <option value="TODAS_SINTETICO">Todas as disciplinas (Sintético - Consolidado)</option>
-          <option value="TODAS_ANALITICO">Todas as disciplinas (Analítico - Detalhado)</option>
+          <option value="TODAS_ANALITICO">Todas as disciplinas (Detalhado Analítico)</option>
         `;
         cfg.disciplinas.forEach(d => {
           sel.innerHTML += `<option value="${d}">${d}</option>`;
@@ -1348,6 +1353,7 @@
     function carregarSelectEstudantesIndividual() {
       const termoBusca = (document.getElementById('rel-ind-busca').value || '').toLowerCase();
       const select = document.getElementById('rel-ind-aluno');
+      if(!select) return;
       select.innerHTML = '';
 
       let listaAlunos = (window.db.alunos || []).filter(a => a.nome.toLowerCase().includes(termoBusca));
@@ -1355,7 +1361,8 @@
 
       if(listaAlunos.length === 0) {
         select.innerHTML = '<option value="">Nenhum estudante encontrado</option>';
-        document.getElementById('container-relatorios-individuais').innerHTML = '<p class="text-center font-bold text-slate-500 py-8">Nenhum estudante selecionado.</p>';
+        const container = document.getElementById('container-relatorios-individuais');
+        if(container) container.innerHTML = '<p class="text-center font-bold text-slate-500 py-8">Nenhum estudante selecionado.</p>';
         return;
       }
 
@@ -1370,8 +1377,34 @@
       carregarSelectEstudantesIndividual();
     }
 
-    function carregarSelectAlunos(elementId, callback) {
-      carregarSelectEstudantesIndividual();
+    function carregarSelectAlunosSecretaria() {
+      const termoBusca = (document.getElementById('sec-busca-aluno').value || '').toLowerCase();
+      const select = document.getElementById('sec-aluno-select');
+      if(!select) return;
+      select.innerHTML = '';
+
+      let alunosFiltrados = (window.db.alunos || []).filter(a => a.nome.toLowerCase().includes(termoBusca));
+      alunosFiltrados.sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { sensitivity: 'accent' }));
+
+      if(alunosFiltrados.length === 0) {
+        select.innerHTML = '<option value="">Nenhum aluno encontrado</option>';
+        document.getElementById('sec-out-nome').innerText = '-';
+        document.getElementById('sec-out-matricula').innerText = '-';
+        document.getElementById('sec-out-turma').innerText = '-';
+        document.getElementById('sec-out-status').innerText = '-';
+        document.getElementById('sec-out-conteudo').innerHTML = '';
+        return;
+      }
+
+      alunosFiltrados.forEach(a => {
+        const isAtivo = (a.status || 'Ativo') === 'Ativo';
+        select.innerHTML += `<option value="${a.id}">${a.nome} - Matrícula: ${a.matricula} (${a.turma}) [${isAtivo ? 'ATIVO' : 'INATIVO'}]</option>`;
+      });
+      gerarRelatorioSecretaria();
+    }
+
+    function filtrarSelectAlunosSecretaria() {
+      carregarSelectAlunosSecretaria();
     }
 
     function gerarRelatorioIndividual() {
@@ -1555,12 +1588,24 @@
       const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
       if (!aluno) return alert("Selecione um(a) estudante válido(a)!");
 
-      // Dispara o salvamento/download do PDF local para que o administrador possa anexar no e-mail
       gerarPDF('print-individual', `Relatorio_Desempenho_${aluno.nome.replace(/\s+/g, '_')}`);
 
-      // Abre o cliente de e-mail com os dados preenchidos
       const assunto = encodeURIComponent(`Relatório Individual de Desempenho - ${aluno.nome}`);
       const corpo = encodeURIComponent(`Prezado(a) responsável por ${aluno.nome},\n\nSegue em anexo o Relatório Individual de Desempenho acadêmico e de frequência do(a) estudante referente ao acompanhamento pedagógico (${aluno.turma}).\n\nAtenciosamente,\n${window.db.config.professor}`);
+
+      window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
+    }
+
+    function enviarRelatorioSecretariaEmail() {
+      if (!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
+      const alunoId = document.getElementById('sec-aluno-select').value;
+      const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
+      if (!aluno) return alert("Selecione um(a) aluno(a) válido(a)!");
+
+      gerarPDF('print-secretaria', `Declaração_Frequencia_${aluno.nome.replace(/\s+/g, '_')}`);
+
+      const assunto = encodeURIComponent(`Declaração de Frequência Escolar - ${aluno.nome}`);
+      const corpo = encodeURIComponent(`Prezado(a) responsável por ${aluno.nome},\n\nSegue em anexo a Declaração de Frequência Escolar oficial (assiduidade consolidada por disciplina) referente ao(à) estudante (${aluno.turma}).\n\nAtenciosamente,\n${window.db.config.professor}`);
 
       window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
     }
@@ -1730,6 +1775,7 @@
       const hoje = new Date().toISOString().slice(0,10);
       document.getElementById('diario-bloco-data').value = hoje;
       carregarSelectEstudantesIndividual();
+      carregarSelectAlunosSecretaria();
     };
   </script>
 </body>
