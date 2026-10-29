@@ -48,10 +48,19 @@
     body.read-only-mode .admin-only {
       display: none !important;
     }
+    /* Restrição rigorosa de largura para formato A4 (Evita estouro lateral e corte de PDF) */
+    .print-area {
+      width: 100%;
+      max-width: 750px;
+      margin-left: auto;
+      margin-right: auto;
+      background: #ffffff !important;
+      box-sizing: border-box;
+    }
     @media print {
       .no-print { display: none !important; }
       body { background: white; color: black; }
-      .print-area { border: none !important; box-shadow: none !important; }
+      .print-area { border: none !important; box-shadow: none !important; width: 100% !important; max-width: 100% !important; }
       .page-break { page-break-before: always; break-before: page; break-inside: avoid; page-break-inside: avoid; }
       .print-area > div { break-inside: avoid; page-break-inside: avoid; }
     }
@@ -105,7 +114,7 @@
           <i class="fa-solid fa-book-open text-amber-400 text-base"></i> Histórico de Aulas
         </button>
         <button onclick="switchTab('historico')" id="tab-historico" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Data
+          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Date
         </button>
         <button onclick="switchTab('individual')" id="tab-individual" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-user-check text-amber-400 text-base"></i> Relatório Individual
@@ -536,7 +545,7 @@
       <div id="print-turma" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-6">
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
           <div class="mb-3 flex justify-center">
-            <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" alt="Logotipo Escolar" class="max-h-20 object-contain" />
+            <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" crossorigin="anonymous" alt="Logotipo Escolar" class="max-h-20 object-contain" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">ACOMPANHAMENTO COLETIVO DA TURMA</h1>
           <p class="text-sm font-bold text-slate-600">Relatório Consolidado de Frequência e Rendimento</p>
@@ -658,10 +667,10 @@
         </div>
       </div>
 
-      <div id="print-secretaria" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area">
+      <div id="print-secretaria" class="bg-white rounded-xl shadow-lg border-2 border-slate-400 p-8 print-area space-y-6">
         <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
           <div class="mb-3 flex justify-center">
-            <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" alt="Logotipo Escolar" class="max-h-20 object-contain" />
+            <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" crossorigin="anonymous" alt="Logotipo Escolar" class="max-h-20 object-contain" />
           </div>
           <h1 class="text-2xl font-black text-slate-900 uppercase">DECLARAÇÃO DE FREQUÊNCIA ESCOLAR</h1>
           <p class="text-sm font-bold text-slate-600">Documento Oficial de Assiduidade - Consolidado por Disciplina</p>
@@ -1456,7 +1465,7 @@
         <div>
           <div class="text-center border-b-4 border-slate-900 pb-4 mb-6">
             <div class="mb-3 flex justify-center">
-              <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" alt="Logotipo Escolar" class="max-h-20 object-contain" />
+              <img src="https://raw.githubusercontent.com/rwpo/Acompanhamento_Pedagogico/main/Cabecalho_CAS.png" crossorigin="anonymous" alt="Logotipo Escolar" class="max-h-20 object-contain" />
             </div>
             <h1 class="text-2xl font-black text-slate-900 tracking-wider uppercase">RELATÓRIO INDIVIDUAL DE DESEMPENHO</h1>
             <p class="text-sm font-bold text-slate-600">Acompanhamento Pedagógico e Avaliação Contínua</p>
@@ -1630,6 +1639,7 @@
       document.getElementById('sec-out-matricula').innerText = aluno.matricula;
       document.getElementById('sec-out-turma').innerText = aluno.turma;
       document.getElementById('sec-out-status').innerText = aluno.status || 'Ativo';
+      document.getElementById('assinatura-professor-sec').innerText = window.db.config.professor;
 
       const containerConteudo = document.getElementById('sec-out-conteudo');
       containerConteudo.innerHTML = '';
@@ -1718,10 +1728,10 @@
     function gerarPDF(elementId, filename) {
       const element = document.getElementById(elementId);
       const opt = {
-        margin: 0.5,
+        margin: [0.3, 0.3, 0.3, 0.3],
         filename: `${filename}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 794 },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       };
       html2pdf().set(opt).from(element).save();
