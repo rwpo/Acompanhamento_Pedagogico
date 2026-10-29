@@ -443,12 +443,9 @@
           <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
             <i class="fa-solid fa-id-card text-amber-600"></i> Consultar Relatório Individual
           </h2>
-          <div class="flex items-center gap-2">
+          <div>
             <button onclick="gerarPDF('print-individual', 'Relatorio_Individual')" class="btn-warning-contrast px-4 py-2 rounded-lg text-sm flex items-center gap-2">
               <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
-            </button>
-            <button onclick="enviarRelatorioIndividualEmail()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold border-2 border-amber-500 rounded-lg text-sm flex items-center gap-2 admin-only">
-              <i class="fa-solid fa-envelope"></i> Enviar por E-mail (PDF)
             </button>
           </div>
         </div>
@@ -643,12 +640,9 @@
           <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
             <i class="fa-solid fa-file-contract text-amber-600"></i> Declaração de Frequência do Estudante
           </h2>
-          <div class="flex items-center gap-2">
+          <div>
             <button onclick="gerarPDF('print-secretaria', 'Relatorio_Frequencia_Secretaria')" class="btn-warning-contrast px-4 py-2 rounded-lg text-sm flex items-center gap-2">
               <i class="fa-solid fa-file-pdf"></i> Exportar para PDF
-            </button>
-            <button onclick="enviarRelatorioSecretariaEmail()" class="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-amber-400 font-bold border-2 border-amber-500 rounded-lg text-sm flex items-center gap-2 admin-only">
-              <i class="fa-solid fa-envelope"></i> Enviar por E-mail (PDF)
             </button>
           </div>
         </div>
@@ -1580,34 +1574,6 @@
       `;
 
       container.innerHTML = htmlBloco;
-    }
-
-    function enviarRelatorioIndividualEmail() {
-      if (!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
-      const alunoId = document.getElementById('rel-ind-aluno').value;
-      const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
-      if (!aluno) return alert("Selecione um(a) estudante válido(a)!");
-
-      gerarPDF('print-individual', `Relatorio_Desempenho_${aluno.nome.replace(/\s+/g, '_')}`);
-
-      const assunto = encodeURIComponent(`Relatório Individual de Desempenho - ${aluno.nome}`);
-      const corpo = encodeURIComponent(`Prezado(a) responsável por ${aluno.nome},\n\nSegue em anexo o Relatório Individual de Desempenho acadêmico e de frequência do(a) estudante referente ao acompanhamento pedagógico (${aluno.turma}).\n\nAtenciosamente,\n${window.db.config.professor}`);
-
-      window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
-    }
-
-    function enviarRelatorioSecretariaEmail() {
-      if (!isAdmin) return alert("Ação permitida apenas no modo Administrador!");
-      const alunoId = document.getElementById('sec-aluno-select').value;
-      const aluno = (window.db.alunos || []).find(a => a.id === alunoId);
-      if (!aluno) return alert("Selecione um(a) aluno(a) válido(a)!");
-
-      gerarPDF('print-secretaria', `Declaração_Frequencia_${aluno.nome.replace(/\s+/g, '_')}`);
-
-      const assunto = encodeURIComponent(`Declaração de Frequência Escolar - ${aluno.nome}`);
-      const corpo = encodeURIComponent(`Prezado(a) responsável por ${aluno.nome},\n\nSegue em anexo a Declaração de Frequência Escolar oficial (assiduidade consolidada por disciplina) referente ao(à) estudante (${aluno.turma}).\n\nAtenciosamente,\n${window.db.config.professor}`);
-
-      window.location.href = `mailto:?subject=${assunto}&body=${corpo}`;
     }
 
     function gerarRelatorioTurma() {
