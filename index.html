@@ -48,12 +48,11 @@
     body.read-only-mode .admin-only {
       display: none !important;
     }
-    /* Restrição rigorosa de largura para formato A4 (Evita estouro lateral e corte de PDF) */
+    /* Ajuste de largura total para preencher a folha A4 sem sobras ou cortes pela metade */
     .print-area {
       width: 100%;
-      max-width: 750px;
-      margin-left: auto;
-      margin-right: auto;
+      max-width: 100%;
+      margin: 0 auto;
       background: #ffffff !important;
       box-sizing: border-box;
     }
@@ -114,7 +113,7 @@
           <i class="fa-solid fa-book-open text-amber-400 text-base"></i> Histórico de Aulas
         </button>
         <button onclick="switchTab('historico')" id="tab-historico" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Date
+          <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Data
         </button>
         <button onclick="switchTab('individual')" id="tab-individual" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-user-check text-amber-400 text-base"></i> Relatório Individual
@@ -1731,7 +1730,7 @@
         margin: [0.3, 0.3, 0.3, 0.3],
         filename: `${filename}.pdf`,
         image: { type: 'jpeg', quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, letterRendering: true, windowWidth: 794 },
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true },
         jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
       };
       html2pdf().set(opt).from(element).save();
