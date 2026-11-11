@@ -55,12 +55,22 @@
     }
 
     /* ==========================================================
-       CONFIGURAÇÕES DE IMPRESSÃO: PAISAGEM + OCULTAÇÃO TOTAL DE BOTÕES
+       CONFIGURAÇÕES DE IMPRESSÃO REFINADAS
        ================================================---------- */
     @media print {
       @page {
-        size: A4 landscape; /* Mudado para Paisagem para dar espaço às colunas */
+        size: A4 portrait; /* Retrato padrão para Individual, Turma e Secretaria */
         margin: 10mm;
+      }
+
+      /* Regra para forçar Paisagem nas abas de tabelas largas (Alunos, Histórico, Consulta por Data) */
+      @page landscape-page {
+        size: A4 landscape;
+        margin: 10mm;
+      }
+
+      #sec-alunos, #sec-historico-geral, #sec-historico {
+        page: landscape-page;
       }
 
       /* 1. Oculta absolutamente tudo na página por padrão */
@@ -68,7 +78,7 @@
         display: none !important;
       }
 
-      /* 2. Exibe apenas a seção ativa e seus elementos internos estruturais */
+      /* 2. Exibe apenas a seção ativa e seus elementos estruturais */
       section:not(.hidden), 
       section:not(.hidden) *,
       .print-area,
@@ -109,8 +119,14 @@
         background: #ffffff !important;
       }
 
-      /* 4. OCULTAÇÃO RIGOROSA DE TODOS OS BOTÕES, MENUS E CABEÇALHOS */
+      /* 4. OCULTAÇÃO RIGOROSA DE TÍTULOS DE TELA, BOTÕES, MENUS E FILTROS */
       header, footer, nav, .no-print, button, .btn-warning-contrast, .btn-contrast, input, select, label, div.no-print {
+        display: none !important;
+      }
+
+      /* Oculta especificamente os cabeçalhos internos de formulário nas abas de tabelas */
+      #sec-alunos .bg-white.rounded-xl.shadow-md.border-2.border-slate-300.p-6.admin-only,
+      #sec-historico .bg-slate-100 {
         display: none !important;
       }
 
