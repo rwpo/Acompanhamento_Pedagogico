@@ -55,20 +55,20 @@
     }
 
     /* ==========================================================
-       IMPRESSÃO LIMPA: FLUXO NATURAL DE BLOCO (SEM PÁGINAS VAZIAS)
+       CONFIGURAÇÕES DE IMPRESSÃO: PAISAGEM + OCULTAÇÃO TOTAL DE BOTÕES
        ================================================---------- */
     @media print {
       @page {
-        size: A4 portrait;
+        size: A4 landscape; /* Mudado para Paisagem para dar espaço às colunas */
         margin: 10mm;
       }
 
-      /* 1. Oculta tudo na página por padrão */
+      /* 1. Oculta absolutamente tudo na página por padrão */
       body * {
         display: none !important;
       }
 
-      /* 2. Exibe apenas a seção ativa E seus filhos diretos em formato de bloco limpo */
+      /* 2. Exibe apenas a seção ativa e seus elementos internos estruturais */
       section:not(.hidden), 
       section:not(.hidden) *,
       .print-area,
@@ -77,7 +77,7 @@
         visibility: visible !important;
       }
 
-      /* Garante que tabelas e elementos internos mantenham suas tags corretas de tabela */
+      /* Restaura exibição correta de tabelas */
       section:not(.hidden) table, 
       section:not(.hidden) table *,
       .print-area table,
@@ -102,7 +102,6 @@
         width: 100% !important;
       }
 
-      /* 4. Posiciona a seção ativa no topo exato, sem absolute/relative que gerem offset */
       section:not(.hidden) {
         margin: 0 !important;
         padding: 0 !important;
@@ -110,8 +109,8 @@
         background: #ffffff !important;
       }
 
-      /* 5. Oculta explicitamente botões, filtros e menus de navegação */
-      header, footer, nav, .no-print, button, input, select, label, div.no-print {
+      /* 4. OCULTAÇÃO RIGOROSA DE TODOS OS BOTÕES, MENUS E CABEÇALHOS */
+      header, footer, nav, .no-print, button, .btn-warning-contrast, .btn-contrast, input, select, label, div.no-print {
         display: none !important;
       }
 
