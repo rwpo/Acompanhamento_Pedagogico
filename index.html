@@ -55,12 +55,12 @@
     }
 
     /* ==========================================================
-       IMPRESSÃO FIEL À TELA (RETORNO EXATO DO VISUAL)
+       CONFIGURAÇÕES DE IMPRESSÃO BLINDADA (IGUAL À TELA)
        ================================================---------- */
     @media print {
       @page {
-        size: A4 portrait;
-        margin: 8mm; /* Margem reduzida para aproveitar todo o espaço da folha */
+        size: A4 landscape; /* Força paisagem para caber todos os cards lado a lado perfeitamente */
+        margin: 10mm;
       }
 
       /* 1. Oculta tudo na página por padrão */
@@ -77,21 +77,35 @@
         visibility: visible !important;
       }
 
-      /* Restaura exibição correta de tabelas e grids internos */
+      /* Restaura tabelas e estruturas internas */
       section:not(.hidden) table, 
       section:not(.hidden) table *,
       .print-area table,
-      .print-area table *,
-      .print-area .grid {
+      .print-area table * {
         display: revert !important;
       }
 
-      /* Força o grid do Tailwind a se comportar corretamente na impressão */
+      /* 3. Força os grids e flexboxes do relatório individual/turma a ficarem lado a lado na impressão */
       .print-area .grid {
-        display: grid !important;
+        display: flex !important;
+        flex-wrap: nowrap !important;
+        gap: 15px !important;
       }
 
-      /* 3. Zera margens e define fundo branco puro */
+      .print-area .grid > div {
+        flex: 1 !important;
+        width: auto !important;
+      }
+
+      /* Caso específico para o grid de 5 colunas do topo */
+      .print-area .grid-cols-5 {
+        display: flex !important;
+      }
+      .print-area .grid-cols-5 > div {
+        flex: 1 !important;
+      }
+
+      /* 4. Zera margens e define fundo branco puro com suporte a cores */
       html, body {
         background: #ffffff !important;
         color: #000000 !important;
@@ -117,14 +131,8 @@
         background: #ffffff !important;
       }
 
-      /* 4. Ocultação rigorosa de menus, botões e filtros */
+      /* 5. Ocultação rigorosa de menus, botões e filtros */
       header, footer, nav, .no-print, button, .btn-warning-contrast, .btn-contrast, input, select, label, div.no-print {
-        display: none !important;
-      }
-
-      /* Oculta cabeçalhos de formulário nas abas de tabelas */
-      #sec-alunos .bg-white.rounded-xl.shadow-md.border-2.border-slate-300.p-6.admin-only,
-      #sec-historico .bg-slate-100 {
         display: none !important;
       }
 
@@ -135,7 +143,7 @@
         padding: 0 !important;
       }
 
-      /* Evita cortes feios no meio de linhas, mas permite quebra natural entre páginas se o relatório for longo */
+      /* Evita quebras feias no meio dos blocos */
       tr, .print-area > div {
         break-inside: avoid;
         page-break-inside: avoid;
