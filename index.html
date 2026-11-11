@@ -55,30 +55,20 @@
     }
 
     /* ==========================================================
-       CONFIGURAÇÕES DE IMPRESSÃO REFINADAS
+       IMPRESSÃO FIEL À TELA (RETORNO EXATO DO VISUAL)
        ================================================---------- */
     @media print {
       @page {
-        size: A4 portrait; /* Retrato padrão para Individual, Turma e Secretaria */
-        margin: 10mm;
+        size: A4 portrait;
+        margin: 8mm; /* Margem reduzida para aproveitar todo o espaço da folha */
       }
 
-      /* Regra para forçar Paisagem nas abas de tabelas largas (Alunos, Histórico, Consulta por Data) */
-      @page landscape-page {
-        size: A4 landscape;
-        margin: 10mm;
-      }
-
-      #sec-alunos, #sec-historico-geral, #sec-historico {
-        page: landscape-page;
-      }
-
-      /* 1. Oculta absolutamente tudo na página por padrão */
+      /* 1. Oculta tudo na página por padrão */
       body * {
         display: none !important;
       }
 
-      /* 2. Exibe apenas a seção ativa e seus elementos estruturais */
+      /* 2. Exibe apenas a seção ativa e os blocos de impressão */
       section:not(.hidden), 
       section:not(.hidden) *,
       .print-area,
@@ -87,15 +77,21 @@
         visibility: visible !important;
       }
 
-      /* Restaura exibição correta de tabelas */
+      /* Restaura exibição correta de tabelas e grids internos */
       section:not(.hidden) table, 
       section:not(.hidden) table *,
       .print-area table,
-      .print-area table * {
+      .print-area table *,
+      .print-area .grid {
         display: revert !important;
       }
 
-      /* 3. Zera margens do documento principal */
+      /* Força o grid do Tailwind a se comportar corretamente na impressão */
+      .print-area .grid {
+        display: grid !important;
+      }
+
+      /* 3. Zera margens e define fundo branco puro */
       html, body {
         background: #ffffff !important;
         color: #000000 !important;
@@ -103,6 +99,8 @@
         padding: 0 !important;
         width: 100% !important;
         height: auto !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
       }
 
       main {
@@ -119,12 +117,12 @@
         background: #ffffff !important;
       }
 
-      /* 4. OCULTAÇÃO RIGOROSA DE TÍTULOS DE TELA, BOTÕES, MENUS E FILTROS */
+      /* 4. Ocultação rigorosa de menus, botões e filtros */
       header, footer, nav, .no-print, button, .btn-warning-contrast, .btn-contrast, input, select, label, div.no-print {
         display: none !important;
       }
 
-      /* Oculta especificamente os cabeçalhos internos de formulário nas abas de tabelas */
+      /* Oculta cabeçalhos de formulário nas abas de tabelas */
       #sec-alunos .bg-white.rounded-xl.shadow-md.border-2.border-slate-300.p-6.admin-only,
       #sec-historico .bg-slate-100 {
         display: none !important;
@@ -137,21 +135,15 @@
         padding: 0 !important;
       }
 
-      tr, .print-area > div, .border-2 {
+      /* Evita cortes feios no meio de linhas, mas permite quebra natural entre páginas se o relatório for longo */
+      tr, .print-area > div {
         break-inside: avoid;
         page-break-inside: avoid;
-      }
-
-      .page-break {
-        page-break-before: always;
-        break-before: page;
       }
 
       thead tr {
         background-color: #0f172a !important;
         color: #ffffff !important;
-        -webkit-print-color-adjust: exact;
-        print-color-adjust: exact;
       }
     }
   </style>
