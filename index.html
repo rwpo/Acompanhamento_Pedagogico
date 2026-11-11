@@ -979,18 +979,18 @@
       diario.forEach(d => {
         if (!d.data || !d.turma) return;
         
-        // Filtro por Mês
+        // Filtro por Mês (se não for TODOS, valida)
         if (filtroMes !== 'TODOS') {
-          const dMes = d.data.split('-')[1];
-          if (dMes !== filtroMes) return;
+          const partesData = d.data.split('-');
+          if (partesData.length >= 2 && partesData[1] !== filtroMes) return;
         }
 
-        // Filtro por Turma
-        if (filtroTurma !== 'TODOS' && d.turma !== filtroTurma) return;
+        // Filtro por Turma (se não for TODAS, valida)
+        if (filtroTurma !== 'TODAS' && d.turma !== filtroTurma) return;
 
-        // Filtro por Disciplina
+        // Filtro por Disciplina (se não for TODAS, valida)
         const discRegistro = d.disciplina || window.db.config.disciplinas[0];
-        if (filtroDisc !== 'TODOS' && discRegistro !== filtroDisc) return;
+        if (filtroDisc !== 'TODAS' && discRegistro !== filtroDisc) return;
 
         const chave = `${d.data}_${d.turma}_${discRegistro}`;
         if (!aulasMap[chave]) {
