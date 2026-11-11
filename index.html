@@ -48,7 +48,7 @@
     body.read-only-mode .admin-only {
       display: none !important;
     }
-    /* Ajuste de largura total para preencher a folha A4 sem sobras ou cortes pela metade */
+    /* Preenchimento total da largura da folha A4 */
     .print-area {
       width: 100%;
       max-width: 100%;
@@ -110,7 +110,7 @@
           <i class="fa-solid fa-list-check text-amber-400 text-base"></i> Registro Diário (Bloco)
         </button>
         <button onclick="switchTab('historico-geral')" id="tab-historico-geral" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
-          <i class="fa-solid fa-book-open text-amber-400 text-base"></i> Histórico de Aulas
+          <i class="fa-solid fa-book-open text-amber-400 text-base"></i> Histórico de Aulas Ministradas
         </button>
         <button onclick="switchTab('historico')" id="tab-historico" class="nav-btn px-4 py-3 text-sm font-bold text-slate-200 flex items-center gap-2">
           <i class="fa-solid fa-calendar-days text-amber-400 text-base"></i> Consulta por Data
@@ -329,14 +329,32 @@
       </div>
     </section>
 
-    <!-- 3. HISTÓRICO GERAL DE AULAS -->
+    <!-- 3. HISTÓRICO DE AULAS MINISTRADAS -->
     <section id="sec-historico-geral" class="space-y-6 hidden">
       <div class="bg-white rounded-xl shadow-md border-2 border-slate-300 p-6">
         <div class="flex flex-wrap justify-between items-center gap-4 mb-4 border-b-2 border-amber-500 pb-2">
           <h2 class="text-xl font-black text-slate-900 flex items-center gap-2">
-            <i class="fa-solid fa-book-open text-amber-600"></i> Histórico Geral de Aulas Ministradas
+            <i class="fa-solid fa-book-open text-amber-600"></i> Histórico de Aulas Ministradas
           </h2>
           <div class="flex flex-wrap items-center gap-3">
+            <div>
+              <label class="text-xs font-bold text-slate-700 mr-1">Mês:</label>
+              <select id="filtro-hist-geral-mes" onchange="renderHistoricoGeral()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50">
+                <option value="TODOS">Todos os Meses</option>
+                <option value="01">Janeiro</option>
+                <option value="02">Fevereiro</option>
+                <option value="03">Março</option>
+                <option value="04">Abril</option>
+                <option value="05">Maio</option>
+                <option value="06">Junho</option>
+                <option value="07">Julho</option>
+                <option value="08">Agosto</option>
+                <option value="09">Setembro</option>
+                <option value="10">Outubro</option>
+                <option value="11">Novembro</option>
+                <option value="12">Dezembro</option>
+              </select>
+            </div>
             <div>
               <label class="text-xs font-bold text-slate-700 mr-1">Turma:</label>
               <select id="filtro-hist-geral-turma" onchange="renderHistoricoGeral()" class="border-2 border-slate-400 rounded-lg p-1.5 font-bold text-sm bg-slate-50 dynamic-turmas-filtro">
@@ -950,6 +968,7 @@
 
     function renderHistoricoGeral() {
       const tbody = document.getElementById('tb-historico-geral-body');
+      const filtroMes = document.getElementById('filtro-hist-geral-mes').value;
       const filtroTurma = document.getElementById('filtro-hist-geral-turma').value;
       const filtroDisc = document.getElementById('filtro-hist-geral-disc').value;
       tbody.innerHTML = '';
@@ -959,9 +978,19 @@
       
       diario.forEach(d => {
         if (!d.data || !d.turma) return;
-        if (filtroTurma !== 'TODAS' && d.turma !== filtroTurma) return;
+        
+        // Filtro por Mês
+        if (filtroMes !== 'TODOS') {
+          const dMes = d.data.split('-')[1];
+          if (dMes !== filtroMes) return;
+        }
+
+        // Filtro por Turma
+        if (filtroTurma !== 'TODOS' && d.turma !== filtroTurma) return;
+
+        // Filtro por Disciplina
         const discRegistro = d.disciplina || window.db.config.disciplinas[0];
-        if (filtroDisc !== 'TODAS' && discRegistro !== filtroDisc) return;
+        if (filtroDisc !== 'TODOS' && discRegistro !== filtroDisc) return;
 
         const chave = `${d.data}_${d.turma}_${discRegistro}`;
         if (!aulasMap[chave]) {
